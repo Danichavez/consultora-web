@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Design tokens portados de Contexto/Referencia/index.html.
+ * Tailwind v4 usa configuración CSS-first: los tokens de @theme generan
+ * utilidades (--color-brand-400 → text-brand-400, bg-brand-400, ...).
+ */
+@theme {
+  --color-ink: #0a0a0f;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /*
+   * Grises de texto. La maqueta usaba zinc-500/600, que sobre #0a0a0f quedan
+   * en ~4.2:1 y reprueban WCAG AA en texto chico. Estos dos reemplazan ese uso:
+   * muted ≈ 7.6:1, subtle ≈ 5.8:1.
+   */
+  --color-muted: #a1a1aa;
+  --color-subtle: #8f8f9a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+}
+
+/* Fondo degradado sutil de las secciones destacadas (caso de estudio, diferencial). */
+.gradient-border {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.15),
+    rgba(16, 185, 129, 0.1)
+  );
+}
+
+/* Degradado indigo→emerald del titular del hero. */
+.text-gradient {
+  background: linear-gradient(135deg, #818cf8, #34d399);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/*
+ * El nav es `fixed`: sin este margen, al saltar por un ancla el título de la
+ * sección queda tapado por la barra — y quien navega por teclado pierde de
+ * vista el destino del foco.
+ */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
+/* Foco visible y consistente para navegación por teclado (a11y). */
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
