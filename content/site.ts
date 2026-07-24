@@ -11,13 +11,13 @@ export interface NavLink {
 }
 
 /**
- * URL pública del sitio. El dominio definitivo todavía está pendiente de
- * decisión con Daniela; hasta entonces se toma de la env var que Vercel
- * inyecta, con un placeholder como último recurso.
+ * URL pública del sitio. Se toma de la env var que Vercel inyecta; el fallback
+ * es codebass.org, el dominio que usamos por ahora (de Bastián). Si más adelante
+ * Daniela define un dominio propio, se cambia la env var y este fallback.
  */
 export const siteUrl = envUrl(
   process.env.NEXT_PUBLIC_SITE_URL,
-  "https://danielachavez.cl",
+  "https://codebass.org",
 );
 
 export const site = {
