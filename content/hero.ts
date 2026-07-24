@@ -11,7 +11,7 @@ export const hero = {
   titulo: "Arquitectura de datos",
   tituloDestacado: "que produce resultados.",
   bajada:
-    "Diseño plataformas de datos en AWS para empresas medianas en Chile. Pipelines automatizados, governance, BI y agentes IA — implementados en tu cuenta, con código reproducible.",
+    "Diseñamos plataformas de datos en AWS para empresas medianas en Chile. Pipelines automatizados, governance, BI y agentes IA — implementados en tu cuenta, con código reproducible.",
   ctaPrincipal: "Agendar llamada gratuita",
   ctaSecundario: "Ver caso de estudio",
 } as const;

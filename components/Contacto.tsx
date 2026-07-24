@@ -16,7 +16,7 @@ export default function Contacto() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">¿Tienes datos sin explotar?</h2>
           <p className="text-muted mb-10">
-            30 minutos para entender tu contexto y ver si puedo ayudar. Sin
+            30 minutos para entender tu contexto y ver si podemos ayudar. Sin
             compromiso.
           </p>
 
@@ -26,7 +26,7 @@ export default function Contacto() {
             <p className="text-sm text-muted mb-4">
               {tieneCalendly
                 ? "¿Prefieres hablarlo en vivo?"
-                : "¿Prefieres escribirme directo?"}
+                : "¿Prefieres escribirnos directo?"}
             </p>
 
             {tieneCalendly ? (

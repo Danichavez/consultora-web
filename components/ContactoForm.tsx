@@ -129,7 +129,7 @@ export default function ContactoForm() {
       <div role="status" aria-live="polite">
         {estado === "exito" && (
           <p className="text-sm text-emerald-400">
-            ¡Listo! Recibí tu mensaje y te respondo dentro de las próximas 24
+            ¡Listo! Recibimos tu mensaje y te respondemos dentro de las próximas 24
             horas hábiles.
           </p>
         )}

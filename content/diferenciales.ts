@@ -6,22 +6,22 @@ export interface Diferencial {
   titulo: string;
   descripcion: string;
   /** Selecciona el ícono SVG en el componente. */
-  icono: "codigo" | "candado" | "escudo";
-  acento: "brand" | "emerald" | "amber";
+  icono: "codigo" | "candado" | "escudo" | "rayo";
+  acento: "brand" | "emerald" | "amber" | "sky";
 }
 
 export const diferenciales: Diferencial[] = [
   {
     titulo: "Quien diseña, implementa",
     descripcion:
-      "La arquitecta que habla contigo es la que escribe el código. Sin intermediarios, sin juniors rotando.",
+      "Una dupla fija: la arquitecta que diseña tus datos y el ingeniero que construye la IA y la automatización. Los mismos dos, de principio a fin, sin traspasos.",
     icono: "codigo",
     acento: "brand",
   },
   {
     titulo: "Ownership, no dependencia",
     descripcion:
-      "Todo en tu cuenta AWS. Código tuyo. IaC reproducible. Si mañana no me necesitas, sigues operando solo.",
+      "Todo en tu cuenta AWS. Código tuyo. IaC reproducible. Si mañana no nos necesitas, sigues operando solo.",
     icono: "candado",
     acento: "emerald",
   },
@@ -31,6 +31,13 @@ export const diferenciales: Diferencial[] = [
       "8+ años en industria financiera. Auditoría, compliance, alta disponibilidad. Si funciona ahí, funciona en cualquier lado.",
     icono: "escudo",
     acento: "amber",
+  },
+  {
+    titulo: "Del dato a la automatización",
+    descripcion:
+      "La misma dupla que ordena tus datos te construye los agentes de IA y las automatizaciones encima. In-house, nada tercerizado.",
+    icono: "rayo",
+    acento: "sky",
   },
 ];
 

@@ -145,7 +145,7 @@ export async function POST(request: Request): Promise<Response> {
           ok: false,
           // Se muestra el email público del sitio, nunca el destinatario real
           // configurado en el entorno.
-          error: `El envío automático no está disponible por ahora. Escríbeme directo a ${site.email} y te respondo igual.`,
+          error: `El envío automático no está disponible por ahora. Escríbenos directo a ${site.email} y te respondemos igual.`,
         },
         503,
       );
