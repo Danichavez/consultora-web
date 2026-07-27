@@ -8,21 +8,26 @@ import {
   normalizarLead,
   type RespuestaContacto,
 } from "@/lib/leads";
+import { consumir, identificarCliente } from "@/lib/rate-limit";
 
 /**
  * `POST /api/contacto` — recibe el formulario de contacto y notifica por email.
  *
  * Reglas: la validación del cliente no se cree nunca (se revalida acá contra el
- * mismo `leadContactoSchema`), el honeypot corta antes de gastar un envío, y el
- * detalle de cualquier error interno queda en los logs del servidor — al cliente
- * solo le llega un mensaje genérico.
+ * mismo `leadContactoSchema`), el rate limit y el honeypot cortan antes de
+ * gastar un envío, y el detalle de cualquier error interno queda en los logs del
+ * servidor — al cliente solo le llega un mensaje genérico.
  */
 
 /** Resend usa APIs de Node, así que este handler no corre en el edge. */
 export const runtime = "nodejs";
 
-function responder(cuerpo: RespuestaContacto, status: number): Response {
-  return Response.json(cuerpo, { status });
+function responder(
+  cuerpo: RespuestaContacto,
+  status: number,
+  headers?: HeadersInit,
+): Response {
+  return Response.json(cuerpo, { status, headers });
 }
 
 /** ¿Es un objeto JSON plano? Un array o un `null` no sirven como payload. */
@@ -61,6 +66,22 @@ export async function POST(request: Request): Promise<Response> {
     return responder(
       { ok: false, error: "Solicitud rechazada." },
       403,
+    );
+  }
+
+  // Antes de leer el body: un flood no debería costarnos ni parseo ni cuota de
+  // Resend. Se cuenta toda request que llegue hasta acá, válida o no — si solo
+  // se contaran las válidas, mandar basura saldría gratis e ilimitado.
+  const limite = consumir(identificarCliente(request));
+  if (!limite.permitido) {
+    return responder(
+      {
+        ok: false,
+        error:
+          "Recibimos varios mensajes tuyos hace poco. Espera unos minutos antes de enviar otro.",
+      },
+      429,
+      { "Retry-After": String(limite.reintentarEnSegundos) },
     );
   }
 
