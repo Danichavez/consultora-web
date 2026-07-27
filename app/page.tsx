@@ -1,6 +1,5 @@
 import Hero from "@/components/Hero";
 import ProblemaSolucion from "@/components/ProblemaSolucion";
-import CasoEstudio from "@/components/CasoEstudio";
 import Servicios from "@/components/Servicios";
 import Proceso from "@/components/Proceso";
 import Diferencial from "@/components/Diferencial";
@@ -17,7 +16,6 @@ export default function Home() {
     <>
       <Hero />
       <ProblemaSolucion />
-      <CasoEstudio />
       <Servicios />
       <Proceso />
       <Diferencial />

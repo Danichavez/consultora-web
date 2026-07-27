@@ -1,4 +1,15 @@
-import { servicios } from "@/content/servicios";
+import { servicios, type NivelInversion } from "@/content/servicios";
+
+/**
+ * Texto visible de cada nivel de inversión. El sitio comunica magnitud, no
+ * cifras: el monto se conversa en la llamada. Escrito acá y no en los datos
+ * para que el copy se ajuste sin tocar el catálogo.
+ */
+const etiquetaInversion: Record<NivelInversion, string> = {
+  acotada: "Inversión acotada",
+  media: "Inversión media",
+  alta: "Inversión alta",
+};
 
 /**
  * Sección "Servicios": grilla de servicios estándar + tarjeta ancha destacada.
@@ -30,9 +41,9 @@ export default function Servicios() {
               <p className="text-sm text-muted mb-4">
                 {servicio.descripcion}
               </p>
-              <div className="flex justify-between text-xs text-muted">
+              <div className="flex justify-between gap-3 text-xs text-muted">
                 <span>{servicio.plazo}</span>
-                <span>{servicio.precio}</span>
+                <span>{etiquetaInversion[servicio.inversion]}</span>
               </div>
             </div>
           ))}
@@ -52,7 +63,7 @@ export default function Servicios() {
               </div>
               <div className="text-right text-sm text-muted whitespace-nowrap">
                 <p>{servicio.plazo}</p>
-                <p>{servicio.precio}</p>
+                <p>{etiquetaInversion[servicio.inversion]}</p>
               </div>
             </div>
           </div>

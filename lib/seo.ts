@@ -151,14 +151,10 @@ export const jsonLd: Record<string, unknown> = {
           "@type": "Offer",
           "@id": `${siteUrl}/#servicio-${servicio.slug}`,
           position: indice + 1,
-          priceCurrency: "CLP",
-          // Los precios son rangos referenciales, no un monto cerrado: van
-          // como texto en la especificación, no como `price`.
-          priceSpecification: {
-            "@type": "PriceSpecification",
-            priceCurrency: "CLP",
-            description: servicio.precio,
-          },
+          // Sin `price` ni `priceSpecification` a propósito: por decisión
+          // comercial el sitio no publica cifras. Dejarlas acá las seguiría
+          // exponiendo —el JSON-LD es público y Google lo lee— aunque no se
+          // vean en la página, que es justo lo que se quiso evitar.
           itemOffered: {
             "@type": "Service",
             name: servicio.nombre,

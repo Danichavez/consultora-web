@@ -2,7 +2,7 @@ import { hero } from "@/content/hero";
 
 /**
  * Hero de la portada: badge de disponibilidad, titular con degradado y
- * los dos CTA (agendar llamada / ver caso de estudio).
+ * los dos CTA (agendar llamada / ver proyectos).
  * El copy vive en `content/hero.ts`.
  */
 export default function Hero() {
@@ -36,7 +36,7 @@ export default function Hero() {
               {hero.ctaPrincipal} <span aria-hidden="true">→</span>
             </a>
             <a
-              href="#caso"
+              href="#trabajo"
               // La maqueta usaba zinc-700 (1.9:1 sobre el fondo): el borde que
               // identifica al botón quedaba casi invisible. zinc-500 da 4.3:1 y
               // cumple el mínimo de 3:1 para componentes no textuales.

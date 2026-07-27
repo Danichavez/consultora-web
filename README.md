@@ -1,6 +1,6 @@
 # Sitio web — Daniela Chávez · Arquitectura de Datos
 
-Landing page de la consultora: presenta servicios, caso de estudio, proceso y portafolio, y captura leads con un formulario que llega por email. Es la **Fase 1** del proyecto (sitio web profesional en Vercel); las fases siguientes —agente de assessment, agente de propuestas— se apoyan sobre este mismo código.
+Landing page de la consultora: presenta servicios, proceso y portafolio, y captura leads con un formulario que llega por email. Es la **Fase 1** del proyecto (sitio web profesional en Vercel); las fases siguientes —agente de assessment, agente de propuestas— se apoyan sobre este mismo código.
 
 Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Resend · deploy en Vercel.
 
@@ -65,14 +65,13 @@ landingpage/
 │   ├── sitemap.ts            # genera /sitemap.xml
 │   ├── robots.ts             # genera /robots.txt (apunta al sitemap)
 │   └── api/contacto/route.ts # endpoint del formulario → Resend
-├── components/               # Nav, Hero, ProblemaSolucion, CasoEstudio, Servicios,
+├── components/               # Nav, Hero, ProblemaSolucion, Servicios,
 │                             # Proceso, Diferencial, Portafolio, StackTecnico,
 │                             # Contacto + ContactoForm, Footer, Analytics, JsonLd
 ├── content/                  # ← contenido editable sin tocar markup (ver más abajo)
 │   ├── site.ts               # nombre, logotipo, email, redes, links del menú
 │   ├── hero.ts               # badge, titular, bajada y textos de los dos botones
-│   ├── servicios.ts          # los 7 servicios con plazo y precio
-│   ├── caso.ts               # caso de estudio y sus 4 métricas
+│   ├── servicios.ts          # los 7 servicios con plazo y nivel de inversión
 │   ├── proceso.ts            # los 5 pasos de "cómo trabajo"
 │   ├── diferenciales.ts      # diferenciales + listas problema/solución
 │   ├── repos.ts              # repos del portafolio
@@ -81,6 +80,7 @@ landingpage/
 │   ├── leads.ts              # contrato y validación del lead (Zod)
 │   ├── email.ts              # armado y envío del email vía Resend
 │   ├── env.ts                # lectura normalizada de variables de entorno
+│   ├── rate-limit.ts         # límite de envíos por IP (anti-abuso del formulario)
 │   └── seo.ts                # metadata de Next + structured data schema.org
 └── public/                   # archivos estáticos — vacío a propósito: la imagen OG
                               # y el favicon se generan por código, no son archivos
@@ -103,11 +103,13 @@ Las URLs de todo esto salen de `NEXT_PUBLIC_SITE_URL`: si la variable está mal,
 
 ## Cómo editar el contenido del sitio (sin tocar código de diseño)
 
-Esta sección es para cambiar **textos, precios, servicios y proyectos** sin saber React.
+Esta sección es para cambiar **textos, servicios y proyectos** sin saber React.
 
-La carpeta `content/` guarda lo que más se edita: el **hero** (lo primero que se ve), los **datos de contacto e identidad**, y las **listas repetibles** — servicios, proyectos del portafolio, pasos del proceso, métricas del caso, diferenciales y tecnologías. Son archivos `.ts`, pero lo único que hay adentro son **fichas**: bloques entre llaves `{ }` con campos tipo `nombre:`, `descripcion:`, `precio:`. El diseño (colores, tarjetas, animaciones) está en otro lado y se genera solo a partir de esas fichas. **Si editás únicamente el texto entre comillas, no podés romper el diseño.**
+La carpeta `content/` guarda lo que más se edita: el **hero** (lo primero que se ve), los **datos de contacto e identidad**, y las **listas repetibles** — servicios, proyectos del portafolio, pasos del proceso, diferenciales y tecnologías. Son archivos `.ts`, pero lo único que hay adentro son **fichas**: bloques entre llaves `{ }` con campos tipo `nombre:`, `descripcion:`, `plazo:`. El diseño (colores, tarjetas, animaciones) está en otro lado y se genera solo a partir de esas fichas. **Si editás únicamente el texto entre comillas, no podés romper el diseño.**
 
-Lo que **no** está en `content/`: los **títulos de cada sección** (los grandes, tipo "Código real en GitHub." o "¿Tienes datos sin explotar?") y los **rótulos chicos en mayúsculas** de arriba de cada sección ("SERVICIOS", "PROCESO", "DIFERENCIAL"…). Esos viven dentro de los archivos de `components/`, mezclados con el markup. Se pueden cambiar, pero ahí ya conviene pedirle a Bastián que lo haga o que te muestre la línea exacta. (Una excepción: el título del caso de estudio —"Pipeline de riesgo financiero"— sí sale de `content/caso.ts`.)
+> **El sitio no publica cifras.** Por decisión comercial, cada servicio muestra el plazo y un nivel de inversión en palabras ("Inversión acotada / media / alta"), nunca el monto. Los rangos en CLP siguen estando en `Contexto/Empresa/catalogo_servicios.md`, que es la referencia interna para conversarlos en la llamada.
+
+Lo que **no** está en `content/`: los **títulos de cada sección** (los grandes, tipo "Código real en GitHub." o "¿Tienes datos sin explotar?") y los **rótulos chicos en mayúsculas** de arriba de cada sección ("SERVICIOS", "PROCESO", "DIFERENCIAL"…). Esos viven dentro de los archivos de `components/`, mezclados con el markup. Se pueden cambiar, pero ahí ya conviene pedirle a Bastián que lo haga o que te muestre la línea exacta. Lo mismo con el texto de los niveles de inversión, que está en `components/Servicios.tsx`.
 
 Tres reglas que evitan el 99% de los errores:
 
@@ -115,7 +117,7 @@ Tres reglas que evitan el 99% de los errores:
 2. Cada línea termina con **coma**.
 3. No borres ni agregues llaves `{ }` ni corchetes `[ ]` — copiá una ficha entera si querés una nueva.
 
-### Ejemplo 1: cambiar el precio y el plazo de un servicio
+### Ejemplo 1: cambiar el plazo y el nivel de inversión de un servicio
 
 Archivo: `content/servicios.ts`
 
@@ -127,7 +129,7 @@ Archivo: `content/servicios.ts`
   nombre: "FinOps",
   descripcion: "Visibilidad de costos cloud por equipo + optimización.",
   plazo: "4-6 semanas",
-  precio: "$8-18M CLP",
+  inversion: "media",
 },
 ```
 
@@ -139,11 +141,13 @@ Archivo: `content/servicios.ts`
   nombre: "FinOps",
   descripcion: "Visibilidad de costos cloud por equipo + optimización.",
   plazo: "3-5 semanas",
-  precio: "$10-20M CLP",
+  inversion: "alta",
 },
 ```
 
 Guardás, y la tarjeta de FinOps en el sitio ya muestra los valores nuevos. El `slug` es el identificador interno: dejalo como está.
+
+⚠️ `inversion` solo acepta **una de estas tres palabras**, escrita igual y entre comillas: `"acotada"`, `"media"` o `"alta"`. Cualquier otra cosa rompe el build (a propósito: es preferible a que la tarjeta salga con el dato en blanco).
 
 ### Ejemplo 2: agregar un proyecto al portafolio
 
@@ -166,15 +170,14 @@ La tarjeta nueva aparece sola en la grilla del portafolio, con el mismo estilo q
 |-----------------|---------|
 | El titular grande, la bajada, el badge "Disponible para nuevos proyectos" y el texto de los dos botones del inicio | `content/hero.ts` |
 | Nombre, iniciales del logo, email, LinkedIn, GitHub, links del menú | `content/site.ts` |
-| Los servicios (nombre, descripción, plazo, precio) | `content/servicios.ts` |
-| El caso de estudio y sus 4 métricas | `content/caso.ts` |
+| Los servicios (nombre, descripción, plazo, nivel de inversión) | `content/servicios.ts` |
 | Los 5 pasos del proceso | `content/proceso.ts` |
 | Los diferenciales y las listas "problema / solución" | `content/diferenciales.ts` |
 | Los proyectos del portafolio | `content/repos.ts` |
 | Las tecnologías de la franja | `content/stack.ts` |
 | **Los títulos de cada sección** y los rótulos chicos en mayúsculas | `components/` — están dentro del markup; pedile ayuda a Bastián |
 
-Dos detalles del hero: el titular está partido en dos líneas, `titulo` y `tituloDestacado` — la segunda es la que sale con el degradado indigo→verde. Y en las métricas del caso de estudio, el campo `acento` es el color del número: solo acepta uno de estos cuatro valores, escrito igual y entre comillas — `"brand"` (indigo), `"emerald"` (verde), `"amber"` (ámbar) o `"purple"` (violeta). Cualquier otra palabra ahí rompe el build.
+Un detalle del hero: el titular está partido en dos líneas, `titulo` y `tituloDestacado` — la segunda es la que sale con el degradado indigo→verde.
 
 Para ver el cambio antes de publicarlo: `npm run dev` y abrir http://localhost:3000. Si algo se rompe, el error aparece en pantalla indicando el archivo y la línea — casi siempre es una comilla o una coma faltante.
 
@@ -190,9 +193,10 @@ components/Contacto.tsx      sección con el copy, Calendly/mailto y redes
         │  POST JSON
         ▼
 /api/contacto  (app/api/contacto/route.ts)
-        │  1. valida de nuevo contra lib/leads.ts (nunca se confía en el cliente)
-        │  2. descarta bots con un campo trampa oculto (honeypot)
-        │  3. normaliza el lead y le estampa la hora del servidor
+        │  1. corta si la IP ya envió demasiado (lib/rate-limit.ts)
+        │  2. valida de nuevo contra lib/leads.ts (nunca se confía en el cliente)
+        │  3. descarta bots con un campo trampa oculto (honeypot)
+        │  4. normaliza el lead y le estampa la hora del servidor
         ▼
 lib/email.ts → Resend → casilla de CONTACTO_TO
 ```
@@ -200,6 +204,7 @@ lib/email.ts → Resend → casilla de CONTACTO_TO
 Detalles que importan:
 
 - La validación está **una sola vez** en `lib/leads.ts` y la usan cliente y servidor.
+- **Rate limiting: 5 envíos por IP cada 10 minutos** (`lib/rate-limit.ts`). Pasado el límite, el endpoint responde `429` con un mensaje que pide esperar unos minutos. Existe porque cada request gasta un envío de Resend y el free tier son ~100 al día: sin freno, un bot agota la cuota y **los leads legítimos se pierden en silencio**. El contador corre *antes* de leer el body, así que mandar basura tampoco sale gratis. Es un contador **en memoria**: en Vercel vive por instancia de función y se reinicia en cada deploy — frena el abuso repetitivo desde un origen, no es un límite distribuido. Si algún día hace falta, se reemplaza por un contador compartido (Upstash Redis, free tier) manteniendo la misma función `consumir()`.
 - `ContactoForm` es el único Client Component del flujo; `Contacto` es Server Component. Maneja los estados de envío: botón deshabilitado con "Enviando…" mientras postea, mensaje de éxito con opción de "Enviar otro mensaje", y errores —tanto por campo como generales— anunciados a lectores de pantalla vía `aria-live`. Ante un error, lo que la persona escribió **no se pierde**.
 - El email del lead va en `Reply-To`, así que se responde directo desde la bandeja.
 - Si `RESEND_API_KEY` no está configurada, el endpoint devuelve 503 con un mensaje que invita a escribir al email público. No revienta ni pierde silenciosamente el lead.
@@ -211,24 +216,30 @@ Detalles que importan:
 
 ## Deploy
 
-- Hosting: **Vercel** (free tier). El proyecto se conecta al repo de GitHub.
+**El sitio está en producción**: `https://codebass.org` (dominio de Bastián, interino hasta que se defina el de la consultora).
+
+- Hosting: **Vercel** (free tier), conectado al repo `github.com/Danichavez/consultora-web`.
 - **Push a `main` = producción.** Cualquier otra rama genera un deploy de preview con su propia URL.
-- Las variables de entorno **no se heredan del `.env.local`**: hay que cargarlas también en Vercel (Project → Settings → Environment Variables), al menos `NEXT_PUBLIC_SITE_URL` y `RESEND_API_KEY`. Después de agregarlas hay que redeployar para que tomen efecto.
+- **El apex es el dominio canónico** y `www.codebass.org` redirige a él con un 308 permanente (Vercel → Settings → Domains). Tiene que coincidir con `NEXT_PUBLIC_SITE_URL`: de esa variable salen el canonical, `og:url`, el sitemap y el robots, así que si apuntan al dominio que redirige, **todas las URLs que publicamos redirigen**.
+- Las variables de entorno **no se heredan del `.env.local`**: hay que cargarlas también en Vercel (Project → Settings → Environment Variables). Después de agregarlas hay que redeployar para que tomen efecto.
+- **DNS en Cloudflare.** Los registros de Vercel y los de Resend (DKIM/SPF/DMARC) van en **modo DNS-only (nube gris)**, nunca proxied: Cloudflare en naranja delante de Vercel rompe SSL y redirects.
 - Antes de pushear: `npm run build` y `npm run lint` en verde.
 
 ---
 
 ## Pendientes que bloquean el lanzamiento
 
+**Ya resuelto:** dominio (interino), repo y deploy en Vercel, GA4 midiendo, Calendly agendando.
+
 Decisiones y accesos que no dependen del código:
 
-- [ ] **Dominio definitivo** — sin él, `NEXT_PUBLIC_SITE_URL` queda en un placeholder y los links canónicos/OG apuntan a un dominio que no existe.
-- [ ] **Cuenta de Calendly** — falta la URL real de la discovery call (`NEXT_PUBLIC_CALENDLY_URL`); mientras tanto la agenda cae al mailto.
-- [ ] **Property de GA4** — falta el ID de medición (`NEXT_PUBLIC_GA_ID`); hoy no se mide nada.
-- [ ] **API key de Resend** + remitente verificado — sin esto el formulario no envía emails. Con dominio propio hay que verificarlo en Resend y cambiar `CONTACTO_FROM`.
-- [ ] **Acceso al repo GitHub** (`Danichavez`) — necesario para conectar el deploy de Vercel y para que los links del portafolio apunten a repos públicos existentes.
+- [ ] **Dominio definitivo de la consultora** — `codebass.org` es un puente. Cambiarlo después implica volver a tocar DNS, Resend y Search Console.
+- [ ] **Cuenta de Resend propia + dominio verificado** — hoy `CONTACTO_FROM` es el sandbox `onboarding@resend.dev`, que **solo entrega a la casilla dueña de la cuenta Resend**. Sin un dominio verificado no se puede notificar a ninguna otra casilla.
+- [ ] **Email profesional vs Gmail** — hoy `danichavez1882@gmail.com` es el email público del sitio y el destino de los leads.
 
 Pendientes técnicos conocidos:
 
-- [ ] **Blog en MDX** — planificado en el mapa del proyecto, **no implementado**: no existen `app/blog/` ni `content/blog/`. La base ya está preparada: `lib/seo.ts` tiene la plantilla de títulos y `app/sitemap.ts` tiene la ruta `/blog` comentada, lista para descomentar.
+- [ ] **Formulario sin probar en producción** — el endpoint responde y valida bien en vivo, pero nunca se envió un lead real desde el sitio publicado. En local con el sandbox sí funcionó.
+- [ ] **Calendly como link, no como embed** — funciona, pero el plan original pedía el widget inline.
+- [ ] **Blog en MDX** — planificado, **no implementado**: no existen `app/blog/` ni `content/blog/`. La base ya está preparada: `lib/seo.ts` tiene la plantilla de títulos y `app/sitemap.ts` tiene la ruta `/blog` comentada, lista para descomentar.
 - [ ] **Suite de tests** — todavía no hay tests ni framework de testing instalado.
