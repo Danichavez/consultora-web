@@ -72,6 +72,57 @@ function podar(ahora: number): void {
 }
 
 /**
+ * Reduce una IPv6 a su prefijo /64 — los primeros 4 hextetos.
+ *
+ * Sin esto el límite es evadible sin ningún esfuerzo: un ISP le delega al
+ * cliente residencial un /64 **entero**, así que una sola máquina puede emitir
+ * cada request desde una dirección distinta (basta con las privacy extensions,
+ * ni siquiera hace falta configurarlo) y no chocar nunca con su propio
+ * contador. Agrupando por /64 el atacante vuelve a tener un solo balde, que es
+ * lo que asumíamos al contar por IP.
+ *
+ * El /64 es la unidad correcta: es lo mínimo que se asigna a un cliente, así
+ * que agrupar ahí no mezcla a personas distintas de un mismo ISP.
+ *
+ * IPv4 se devuelve intacta. Las direcciones mal formadas se devuelven tal cual:
+ * ante la duda conviene una clave de más (limitar de más) que una de menos.
+ */
+export function agruparIp(ip: string): string {
+  // El índice de zona (`fe80::1%eth0`) no identifica al cliente.
+  const limpia = ip.split("%")[0];
+
+  if (!limpia.includes(":")) return limpia; // IPv4
+
+  // IPv4 mapeada en IPv6 (`::ffff:1.2.3.4`): es una IPv4, se trata como tal.
+  const mapeada = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(limpia);
+  if (mapeada) return mapeada[1];
+
+  // Hay que expandir el `::` antes de cortar, o `2001:db8::1` daría un prefijo
+  // distinto que su forma larga siendo la misma dirección.
+  const lados = limpia.split("::");
+  if (lados.length > 2) return limpia; // inválida: dos `::` no existen
+
+  const izquierda = lados[0] ? lados[0].split(":") : [];
+  const derecha = lados[1] ? lados[1].split(":") : [];
+
+  let hextetos: string[];
+  if (lados.length === 2) {
+    const faltantes = 8 - izquierda.length - derecha.length;
+    if (faltantes < 0) return limpia;
+    hextetos = [...izquierda, ...Array<string>(faltantes).fill("0"), ...derecha];
+  } else {
+    hextetos = izquierda;
+    if (hextetos.length !== 8) return limpia;
+  }
+
+  return hextetos
+    .slice(0, 4)
+    // Normalizar para que `2001:0db8:…` y `2001:db8:…` compartan contador.
+    .map((h) => h.toLowerCase().replace(/^0+(?=.)/, ""))
+    .join(":");
+}
+
+/**
  * Identifica al cliente. En Vercel `x-forwarded-for` lo escribe el edge y no es
  * falseable por el cliente; el primer valor es la IP real de origen.
  *
@@ -82,10 +133,10 @@ function podar(ahora: number): void {
 export function identificarCliente(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   const primera = forwarded?.split(",")[0]?.trim();
-  if (primera) return primera;
+  if (primera) return agruparIp(primera);
 
   const real = request.headers.get("x-real-ip")?.trim();
-  if (real) return real;
+  if (real) return agruparIp(real);
 
   return "sin-ip";
 }

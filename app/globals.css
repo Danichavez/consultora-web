@@ -54,58 +54,97 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+ * Paleta nocturna, declarada UNA sola vez.
+ *
+ * Los dos bloques de abajo (el del sistema y el del botón) la *asignan* a los
+ * tokens; ninguno repite un valor. Antes los 20 colores estaban copiados byte
+ * a byte en ambos, y ya casi muerde: al corregir el contraste hubo que tocar
+ * `line-strong` en los dos lados, y olvidarse de uno habría hecho que el tema
+ * manual y el del sistema divergieran sin que nada lo avisara.
+ */
+:root {
+  --noche-base: #101733;
+  --noche-panel: #1a2656;
+  --noche-warm: #23305e;
+  --noche-fg: #e9e7f4;
+  --noche-muted: #a7adcb;
+  --noche-subtle: #9098bb;
+  --noche-line: #2b3663;
+  --noche-line-strong: #6070ac;
+
+  --noche-brand-400: #a8e2d9;
+  --noche-brand-500: #8dd5ca;
+  --noche-brand-600: #6dbfb3;
+
+  --noche-warmth: #dcaaa8;
+  --noche-water: #8cc0d2;
+  --noche-alt: #c4a3d8;
+
+  --noche-exito: #7fd1a0;
+  --noche-error: #ff9d95;
+
+  /* El botón primario invierte el fondo: en oscuro es el acento sobre navy. */
+  --noche-btn: var(--noche-brand-500);
+  --noche-btn-fg: #0d1329;
+
+  /* Los dos resplandores del cielo de la foto: solo se usan como luz. */
+  --noche-luz-malva: 158, 105, 135;
+  --noche-luz-purpura: 102, 90, 136;
+}
+
 /* Preferencia del sistema (sin elección manual explícita). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-base: #101733;
-    --color-panel: #1a2656;
-    --color-warm: #23305e;
-    --color-fg: #e9e7f4;
-    --color-muted: #a7adcb;
-    --color-subtle: #9098bb;
-    --color-line: #2b3663;
-    --color-line-strong: #6070ac;
+    --color-base: var(--noche-base);
+    --color-panel: var(--noche-panel);
+    --color-warm: var(--noche-warm);
+    --color-fg: var(--noche-fg);
+    --color-muted: var(--noche-muted);
+    --color-subtle: var(--noche-subtle);
+    --color-line: var(--noche-line);
+    --color-line-strong: var(--noche-line-strong);
 
-    --color-brand-400: #a8e2d9;
-    --color-brand-500: #8dd5ca;
-    --color-brand-600: #6dbfb3;
+    --color-brand-400: var(--noche-brand-400);
+    --color-brand-500: var(--noche-brand-500);
+    --color-brand-600: var(--noche-brand-600);
 
-    --color-warmth: #dcaaa8;
-    --color-water: #8cc0d2;
-    --color-alt: #c4a3d8;
+    --color-warmth: var(--noche-warmth);
+    --color-water: var(--noche-water);
+    --color-alt: var(--noche-alt);
 
-    --color-exito: #7fd1a0;
-    --color-error: #ff9d95;
+    --color-exito: var(--noche-exito);
+    --color-error: var(--noche-error);
 
-    --color-btn: #8dd5ca;
-    --color-btn-fg: #0d1329;
-  }
+    --color-btn: var(--noche-btn);
+    --color-btn-fg: var(--noche-btn-fg);
+}
 }
 
 /* Elección manual del botón del nav. Gana siempre sobre el sistema. */
 :root[data-theme="dark"] {
-  --color-base: #101733;
-  --color-panel: #1a2656;
-  --color-warm: #23305e;
-  --color-fg: #e9e7f4;
-  --color-muted: #a7adcb;
-  --color-subtle: #9098bb;
-  --color-line: #2b3663;
-  --color-line-strong: #6070ac;
+  --color-base: var(--noche-base);
+  --color-panel: var(--noche-panel);
+  --color-warm: var(--noche-warm);
+  --color-fg: var(--noche-fg);
+  --color-muted: var(--noche-muted);
+  --color-subtle: var(--noche-subtle);
+  --color-line: var(--noche-line);
+  --color-line-strong: var(--noche-line-strong);
 
-  --color-brand-400: #a8e2d9;
-  --color-brand-500: #8dd5ca;
-  --color-brand-600: #6dbfb3;
+  --color-brand-400: var(--noche-brand-400);
+  --color-brand-500: var(--noche-brand-500);
+  --color-brand-600: var(--noche-brand-600);
 
-  --color-warmth: #dcaaa8;
-  --color-water: #8cc0d2;
-  --color-alt: #c4a3d8;
+  --color-warmth: var(--noche-warmth);
+  --color-water: var(--noche-water);
+  --color-alt: var(--noche-alt);
 
-  --color-exito: #7fd1a0;
-  --color-error: #ff9d95;
+  --color-exito: var(--noche-exito);
+  --color-error: var(--noche-error);
 
-  --color-btn: #8dd5ca;
-  --color-btn-fg: #0d1329;
+  --color-btn: var(--noche-btn);
+  --color-btn-fg: var(--noche-btn-fg);
 }
 
 /*
@@ -147,35 +186,34 @@ body {
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .gradient-border {
     background:
-      radial-gradient(90% 70% at 85% 0%, rgba(158, 105, 135, 0.28), transparent 62%),
-      radial-gradient(80% 60% at 8% 10%, rgba(102, 90, 136, 0.3), transparent 58%);
+      radial-gradient(90% 70% at 85% 0%, rgba(var(--noche-luz-malva), 0.28), transparent 62%),
+      radial-gradient(80% 60% at 8% 10%, rgba(var(--noche-luz-purpura), 0.3), transparent 58%);
   }
 }
 :root[data-theme="dark"] .gradient-border {
   background:
-    radial-gradient(90% 70% at 85% 0%, rgba(158, 105, 135, 0.28), transparent 62%),
-    radial-gradient(80% 60% at 8% 10%, rgba(102, 90, 136, 0.3), transparent 58%);
+    radial-gradient(90% 70% at 85% 0%, rgba(var(--noche-luz-malva), 0.28), transparent 62%),
+    radial-gradient(80% 60% at 8% 10%, rgba(var(--noche-luz-purpura), 0.3), transparent 58%);
 }
 
-/* Degradado del titular del hero: tierra de día, cielo de noche. */
+/*
+ * Degradado del titular del hero. Escrito con tokens, así que no necesita una
+ * variante por tema: en claro sale pasto → tierra → salvia y en oscuro
+ * menta → rosa → lila, porque los tokens ya cambian. Antes había dos reglas
+ * duplicadas y el lila era un `#b98ec4` suelto que no correspondía a ningún
+ * token — parecía `--color-alt` sin serlo.
+ */
 .text-gradient {
-  background: linear-gradient(135deg, #4f6b1c, #8a5614 58%, #2f4a9c);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-500),
+    var(--color-warmth) 55%,
+    var(--color-alt)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .text-gradient {
-    background: linear-gradient(135deg, #8dd5ca, #dcaaa8 52%, #b98ec4);
-    background-clip: text;
-    -webkit-background-clip: text;
-  }
-}
-:root[data-theme="dark"] .text-gradient {
-  background: linear-gradient(135deg, #8dd5ca, #dcaaa8 52%, #b98ec4);
-  background-clip: text;
-  -webkit-background-clip: text;
 }
 
 /*

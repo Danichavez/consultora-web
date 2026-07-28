@@ -34,7 +34,7 @@ export const contentType = "image/png";
 const FONDO = "#101733";
 const BRAND = "#8dd5ca";
 const ROSA = "#dcaaa8";
-const MALVA = "#b98ec4";
+const MALVA = "#c4a3d8"; // = --noche-alt
 const TEXTO = "#e9e7f4";
 const MUTED = "#a7adcb";
 const SUBTLE = "#9098bb";
