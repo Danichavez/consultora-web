@@ -5,8 +5,8 @@ import { proceso, type Paso } from "@/content/proceso";
  * literalmente en el código, nunca concatenadas en runtime.
  */
 const ACENTO_CIRCULO: Record<Paso["acento"], string> = {
-  brand: "bg-brand-500/20 text-brand-400",
-  emerald: "bg-emerald-500/20 text-emerald-400",
+  marca: "bg-brand-500/20 text-brand-500",
+  alterno: "bg-alt/20 text-alt",
 };
 
 /**
@@ -14,7 +14,7 @@ const ACENTO_CIRCULO: Record<Paso["acento"], string> = {
  */
 export default function Proceso() {
   return (
-    <section id="proceso" className="py-24 px-6 border-t border-white/5">
+    <section id="proceso" className="py-24 px-6 border-t border-line">
       <div className="max-w-6xl mx-auto">
         <p className="text-sm text-muted uppercase tracking-wider mb-4">
           Proceso

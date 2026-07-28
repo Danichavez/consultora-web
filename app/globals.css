@@ -1,50 +1,215 @@
 @import "tailwindcss";
 
 /*
- * Design tokens portados de Contexto/Referencia/index.html.
- * Tailwind v4 usa configuración CSS-first: los tokens de @theme generan
- * utilidades (--color-brand-400 → text-brand-400, bg-brand-400, ...).
+ * SISTEMA DE TEMAS — dos paletas, dos modos.
+ *
+ *   Claro  → Okavango (delta de Botswana): papel, pasto, tierra, canal.
+ *   Oscuro → costa nocturna: navy, menta, rosa, malva.
+ *
+ * Cómo funciona: `@theme` define los tokens con los valores del modo CLARO,
+ * que es el que Tailwind usa para generar las utilidades (`bg-base`,
+ * `text-fg`, `border-line`…). Después, dos bloques redefinen esas mismas
+ * variables para el modo oscuro — las utilidades ya generadas apuntan a
+ * `var(--color-*)`, así que cambiar la variable cambia el sitio entero.
+ *
+ * Los dos bloques cubren los dos caminos:
+ *   1. `@media (prefers-color-scheme: dark)` → la preferencia del sistema,
+ *      que aplica sin JavaScript. El `:not([data-theme="light"])` deja que
+ *      una elección manual gane por encima del sistema.
+ *   2. `[data-theme="dark"]` → la elección manual del botón del nav.
+ *
+ * NINGÚN componente debe volver a escribir un color literal (`bg-white/5`,
+ * `text-black`, `border-zinc-700`): esos asumen un fondo y se rompen al
+ * invertirlo. Todo pasa por estos tokens.
  */
 @theme {
-  --color-ink: #0a0a0f;
+  /* --- Superficies y texto (modo claro) --- */
+  --color-base: #fbfaf4; /* fondo de página: papel, no crema */
+  --color-panel: #ffffff; /* tarjetas y campos */
+  --color-warm: #f7f1da; /* franjas cálidas: la crema del delta */
+  --color-fg: #1e2410; /* texto principal: tinta oliva */
+  --color-muted: #55632f; /* texto secundario */
+  --color-subtle: #66743f; /* pies, captions, placeholders — 4.86:1 */
+  --color-line: #e6e1cb; /* bordes sutiles */
+  --color-line-strong: #94895c; /* bordes que identifican un control — 3.35:1 */
 
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
+  /* --- Acento principal: el pasto del delta, bajado hasta cumplir AA --- */
+  --color-brand-400: #5c7a22;
+  --color-brand-500: #4f6b1c;
+  --color-brand-600: #445e16;
 
-  /*
-   * Grises de texto. La maqueta usaba zinc-500/600, que sobre #0a0a0f quedan
-   * en ~4.2:1 y reprueban WCAG AA en texto chico. Estos dos reemplazan ese uso:
-   * muted ≈ 7.6:1, subtle ≈ 5.8:1.
-   */
-  --color-muted: #a1a1aa;
-  --color-subtle: #8f8f9a;
+  /* --- Acentos secundarios --- */
+  --color-warmth: #8a5614; /* tierra: nivel de inversión, datos cálidos */
+  --color-water: #2f4a9c; /* canal: proceso y stacks */
+  --color-alt: #3a6357; /* salvia: cuarto acento */
+
+  /* --- Color semántico: independiente de la marca, existe en ambos modos --- */
+  --color-exito: #2c6b3f;
+  --color-error: #a52318;
+
+  /* --- Botón primario: invierte el fondo en los dos modos --- */
+  --color-btn: #23300c;
+  --color-btn-fg: #f7f4e6;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
-  background: var(--color-ink);
+/* Preferencia del sistema (sin elección manual explícita). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-base: #101733;
+    --color-panel: #1a2656;
+    --color-warm: #23305e;
+    --color-fg: #e9e7f4;
+    --color-muted: #a7adcb;
+    --color-subtle: #9098bb;
+    --color-line: #2b3663;
+    --color-line-strong: #6070ac;
+
+    --color-brand-400: #a8e2d9;
+    --color-brand-500: #8dd5ca;
+    --color-brand-600: #6dbfb3;
+
+    --color-warmth: #dcaaa8;
+    --color-water: #8cc0d2;
+    --color-alt: #c4a3d8;
+
+    --color-exito: #7fd1a0;
+    --color-error: #ff9d95;
+
+    --color-btn: #8dd5ca;
+    --color-btn-fg: #0d1329;
+  }
 }
 
-/* Fondo degradado sutil de las secciones destacadas (caso de estudio, diferencial). */
+/* Elección manual del botón del nav. Gana siempre sobre el sistema. */
+:root[data-theme="dark"] {
+  --color-base: #101733;
+  --color-panel: #1a2656;
+  --color-warm: #23305e;
+  --color-fg: #e9e7f4;
+  --color-muted: #a7adcb;
+  --color-subtle: #9098bb;
+  --color-line: #2b3663;
+  --color-line-strong: #6070ac;
+
+  --color-brand-400: #a8e2d9;
+  --color-brand-500: #8dd5ca;
+  --color-brand-600: #6dbfb3;
+
+  --color-warmth: #dcaaa8;
+  --color-water: #8cc0d2;
+  --color-alt: #c4a3d8;
+
+  --color-exito: #7fd1a0;
+  --color-error: #ff9d95;
+
+  --color-btn: #8dd5ca;
+  --color-btn-fg: #0d1329;
+}
+
+/*
+ * `color-scheme` no es decorativo: le dice al navegador de qué color pintar
+ * las barras de scroll, el autocompletado y los controles nativos. Sin esto,
+ * en modo oscuro el autofill de Chrome rellena los campos con fondo blanco.
+ */
+:root {
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-base);
+}
+
+/*
+ * Fondo degradado de la sección "Diferencial". En claro es un lavado de
+ * pasto y crema; en oscuro son los dos resplandores del cielo de la foto
+ * —púrpura y malva—, que es lo que le da carácter al modo nocturno.
+ */
 .gradient-border {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.15),
-    rgba(16, 185, 129, 0.1)
+    rgba(79, 107, 28, 0.07),
+    rgba(154, 95, 22, 0.06)
   );
 }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .gradient-border {
+    background:
+      radial-gradient(90% 70% at 85% 0%, rgba(158, 105, 135, 0.28), transparent 62%),
+      radial-gradient(80% 60% at 8% 10%, rgba(102, 90, 136, 0.3), transparent 58%);
+  }
+}
+:root[data-theme="dark"] .gradient-border {
+  background:
+    radial-gradient(90% 70% at 85% 0%, rgba(158, 105, 135, 0.28), transparent 62%),
+    radial-gradient(80% 60% at 8% 10%, rgba(102, 90, 136, 0.3), transparent 58%);
+}
 
-/* Degradado indigo→emerald del titular del hero. */
+/* Degradado del titular del hero: tierra de día, cielo de noche. */
 .text-gradient {
-  background: linear-gradient(135deg, #818cf8, #34d399);
+  background: linear-gradient(135deg, #4f6b1c, #8a5614 58%, #2f4a9c);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .text-gradient {
+    background: linear-gradient(135deg, #8dd5ca, #dcaaa8 52%, #b98ec4);
+    background-clip: text;
+    -webkit-background-clip: text;
+  }
+}
+:root[data-theme="dark"] .text-gradient {
+  background: linear-gradient(135deg, #8dd5ca, #dcaaa8 52%, #b98ec4);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/*
+ * Iconos del botón de tema. Se resuelven en CSS y no con estado de React a
+ * propósito: el servidor no sabe qué tema tiene la persona, así que
+ * renderizar el ícono desde JavaScript provocaría un desajuste de hidratación
+ * o un parpadeo. Con estas reglas el HTML trae los dos y el navegador
+ * muestra el que corresponde ya en el primer pintado.
+ */
+.solo-claro {
+  display: inline-flex;
+}
+.solo-oscuro {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .solo-claro {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .solo-oscuro {
+    display: inline-flex;
+  }
+}
+:root[data-theme="dark"] .solo-claro {
+  display: none;
+}
+:root[data-theme="dark"] .solo-oscuro {
+  display: inline-flex;
+}
+:root[data-theme="light"] .solo-claro {
+  display: inline-flex;
+}
+:root[data-theme="light"] .solo-oscuro {
+  display: none;
 }
 
 /*
@@ -58,7 +223,7 @@ body {
 
 /* Foco visible y consistente para navegación por teclado (a11y). */
 :focus-visible {
-  outline: 2px solid var(--color-brand-400);
+  outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
   border-radius: 2px;
 }

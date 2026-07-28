@@ -12,7 +12,7 @@ export default function Hero() {
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium mb-8">
             <span
-              className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+              className="w-1.5 h-1.5 rounded-full bg-exito animate-pulse"
               aria-hidden="true"
             />
             {hero.disponibilidad}
@@ -31,16 +31,16 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4">
             <a
               href="#contacto"
-              className="bg-white text-black px-6 py-3.5 rounded-lg font-medium hover:bg-zinc-200 transition text-center"
+              className="bg-btn text-btn-fg px-6 py-3.5 rounded-lg font-medium hover:opacity-90 transition text-center"
             >
               {hero.ctaPrincipal} <span aria-hidden="true">→</span>
             </a>
             <a
               href="#trabajo"
-              // La maqueta usaba zinc-700 (1.9:1 sobre el fondo): el borde que
-              // identifica al botón quedaba casi invisible. zinc-500 da 4.3:1 y
-              // cumple el mínimo de 3:1 para componentes no textuales.
-              className="border border-zinc-500 px-6 py-3.5 rounded-lg font-medium hover:border-zinc-400 hover:bg-white/5 transition text-center"
+              // `line-strong` existe para esto: un borde que identifica al
+              // control y llega al mínimo de 3:1 en los dos temas. El
+              // `border-zinc-500` que había acá solo funcionaba sobre oscuro.
+              className="border border-line-strong px-6 py-3.5 rounded-lg font-medium hover:border-fg hover:bg-warm transition text-center"
             >
               {hero.ctaSecundario}
             </a>

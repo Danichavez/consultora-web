@@ -11,7 +11,7 @@ export default function Contacto() {
   const tieneCalendly = site.calendly.trim() !== "";
 
   return (
-    <section id="contacto" className="py-24 px-6 border-t border-white/5">
+    <section id="contacto" className="py-24 px-6 border-t border-line">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">¿Tienes datos sin explotar?</h2>
@@ -34,7 +34,7 @@ export default function Contacto() {
                 href={site.calendly}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-white text-black px-8 py-4 rounded-lg font-medium hover:bg-zinc-200 transition text-lg"
+                className="inline-block bg-btn text-btn-fg px-8 py-4 rounded-lg font-medium hover:opacity-90 transition text-lg"
               >
                 Agendar 30 min →
                 <span className="sr-only"> (abre en una pestaña nueva)</span>
@@ -42,7 +42,7 @@ export default function Contacto() {
             ) : (
               <a
                 href={`mailto:${site.email}`}
-                className="inline-block bg-white text-black px-8 py-4 rounded-lg font-medium hover:bg-zinc-200 transition text-lg"
+                className="inline-block bg-btn text-btn-fg px-8 py-4 rounded-lg font-medium hover:opacity-90 transition text-lg"
               >
                 {site.email}
               </a>
@@ -54,7 +54,7 @@ export default function Contacto() {
               href={site.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-muted hover:text-white transition"
+              className="text-sm text-muted hover:text-fg transition"
             >
               LinkedIn
               <span className="sr-only"> (abre en una pestaña nueva)</span>
@@ -63,7 +63,7 @@ export default function Contacto() {
               href={site.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-muted hover:text-white transition"
+              className="text-sm text-muted hover:text-fg transition"
             >
               GitHub
               <span className="sr-only"> (abre en una pestaña nueva)</span>

@@ -6,7 +6,7 @@ import { problemas, soluciones } from "@/content/diferenciales";
  */
 export default function ProblemaSolucion() {
   return (
-    <section className="py-24 px-6 border-t border-white/5">
+    <section className="py-24 px-6 border-t border-line">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16">
           <div>
@@ -17,7 +17,7 @@ export default function ProblemaSolucion() {
             <ul className="space-y-4 text-muted">
               {problemas.map((problema) => (
                 <li key={problema} className="flex gap-3">
-                  <span className="text-red-400 mt-1" aria-hidden="true">
+                  <span className="text-error mt-1" aria-hidden="true">
                     ✗
                   </span>{" "}
                   {problema}
@@ -34,7 +34,7 @@ export default function ProblemaSolucion() {
             <ul className="space-y-4 text-muted">
               {soluciones.map((solucion) => (
                 <li key={solucion} className="flex gap-3">
-                  <span className="text-emerald-400 mt-1" aria-hidden="true">
+                  <span className="text-exito mt-1" aria-hidden="true">
                     ✓
                   </span>{" "}
                   {solucion}

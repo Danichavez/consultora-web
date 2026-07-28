@@ -20,7 +20,7 @@ export default function Servicios() {
   const destacados = servicios.filter((servicio) => servicio.destacado);
 
   return (
-    <section id="servicios" className="py-24 px-6 border-t border-white/5">
+    <section id="servicios" className="py-24 px-6 border-t border-line">
       <div className="max-w-6xl mx-auto">
         <p className="text-sm text-muted uppercase tracking-wider mb-4">
           Servicios
@@ -33,9 +33,9 @@ export default function Servicios() {
           {grilla.map((servicio) => (
             <div
               key={servicio.slug}
-              className="bg-white/[0.02] border border-white/5 rounded-xl p-6 hover:border-brand-500/30 transition group"
+              className="bg-panel border border-line rounded-xl p-6 hover:border-brand-500/30 transition group"
             >
-              <h3 className="font-semibold mb-2 group-hover:text-brand-400 transition">
+              <h3 className="font-semibold mb-2 group-hover:text-brand-500 transition">
                 {servicio.nombre}
               </h3>
               <p className="text-sm text-muted mb-4">
@@ -43,7 +43,11 @@ export default function Servicios() {
               </p>
               <div className="flex justify-between gap-3 text-xs text-muted">
                 <span>{servicio.plazo}</span>
-                <span>{etiquetaInversion[servicio.inversion]}</span>
+                {/* El acento cálido distingue la inversión del plazo sin
+                    necesidad de otro rótulo. */}
+                <span className="text-warmth">
+                  {etiquetaInversion[servicio.inversion]}
+                </span>
               </div>
             </div>
           ))}
@@ -56,14 +60,16 @@ export default function Servicios() {
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h3 className="font-semibold text-brand-400 mb-1">
+                <h3 className="font-semibold text-brand-500 mb-1">
                   {servicio.nombre}
                 </h3>
                 <p className="text-sm text-muted">{servicio.descripcion}</p>
               </div>
               <div className="text-right text-sm text-muted whitespace-nowrap">
                 <p>{servicio.plazo}</p>
-                <p>{etiquetaInversion[servicio.inversion]}</p>
+                <p className="text-warmth">
+                  {etiquetaInversion[servicio.inversion]}
+                </p>
               </div>
             </div>
           </div>

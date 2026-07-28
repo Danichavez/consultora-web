@@ -6,7 +6,7 @@ import { repos } from "@/content/repos";
  */
 export default function Portafolio() {
   return (
-    <section id="trabajo" className="py-24 px-6 border-t border-white/5">
+    <section id="trabajo" className="py-24 px-6 border-t border-line">
       <div className="max-w-6xl mx-auto">
         <p className="text-sm text-muted uppercase tracking-wider mb-4">
           Proyectos
@@ -24,14 +24,15 @@ export default function Portafolio() {
               href={repo.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white/[0.02] border border-white/5 rounded-xl p-5 hover:border-brand-500/30 transition block group"
+              className="bg-panel border border-line rounded-xl p-5 hover:border-brand-500/30 transition block group"
             >
-              <h3 className="font-medium mb-1 group-hover:text-brand-400 transition">
+              <h3 className="font-medium mb-1 group-hover:text-brand-500 transition">
                 {repo.nombre}
                 <span className="sr-only"> (abre en una pestaña nueva)</span>
               </h3>
               <p className="text-sm text-muted mb-3">{repo.descripcion}</p>
-              <p className="text-xs text-subtle">{repo.stack}</p>
+              {/* El acento "agua" marca lo técnico: acá y en el proceso. */}
+              <p className="text-xs text-water">{repo.stack}</p>
             </a>
           ))}
         </div>

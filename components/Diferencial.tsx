@@ -15,19 +15,24 @@ const ICONO_PATH: Record<DiferencialItem["icono"], string> = {
 /**
  * Clases completas por acento (fondo del recuadro + color del SVG).
  * Escritas literalmente para que Tailwind las detecte en build.
+ *
+ * Los cuatro acentos son tokens que cada tema resuelve distinto, así que esta
+ * tabla no cambia al cambiar de modo. Agregar un valor al union de
+ * `content/diferenciales.ts` rompe el build acá, que es lo que queremos:
+ * mejor un error que un ícono sin color.
  */
 const ACENTO_RECUADRO: Record<DiferencialItem["acento"], string> = {
-  brand: "bg-brand-500/10",
-  emerald: "bg-emerald-500/10",
-  amber: "bg-amber-500/10",
-  sky: "bg-sky-500/10",
+  marca: "bg-brand-500/10",
+  calido: "bg-warmth/10",
+  agua: "bg-water/10",
+  alterno: "bg-alt/10",
 };
 
 const ACENTO_ICONO: Record<DiferencialItem["acento"], string> = {
-  brand: "text-brand-400",
-  emerald: "text-emerald-400",
-  amber: "text-amber-400",
-  sky: "text-sky-400",
+  marca: "text-brand-500",
+  calido: "text-warmth",
+  agua: "text-water",
+  alterno: "text-alt",
 };
 
 /**
@@ -35,7 +40,7 @@ const ACENTO_ICONO: Record<DiferencialItem["acento"], string> = {
  */
 export default function Diferencial() {
   return (
-    <section className="py-24 px-6 border-t border-white/5 gradient-border">
+    <section className="py-24 px-6 border-t border-line gradient-border">
       <div className="max-w-6xl mx-auto">
         <p className="text-sm text-muted uppercase tracking-wider mb-4">
           Diferencial

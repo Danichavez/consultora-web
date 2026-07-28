@@ -14,7 +14,7 @@ export default function Footer() {
   const anio = new Date().getFullYear();
 
   return (
-    <footer className="py-8 text-center text-xs text-subtle border-t border-white/5">
+    <footer className="py-8 text-center text-xs text-subtle border-t border-line">
       <div className="max-w-6xl mx-auto px-6">
         © {anio} {site.nombre} · {site.ciudad}
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import CambiarTema from "@/components/CambiarTema";
 import { navLinks, site } from "@/content/site";
 
 /**
@@ -15,7 +16,7 @@ export default function Nav() {
   const [abierto, setAbierto] = useState(false);
 
   return (
-    <nav className="fixed w-full z-50 bg-ink/80 backdrop-blur-lg border-b border-white/5">
+    <nav className="fixed w-full z-50 bg-base/80 backdrop-blur-lg border-b border-line">
       <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
         <a
           href="#contenido"
@@ -39,19 +40,23 @@ export default function Nav() {
             <a
               key={link.href}
               href={link.href}
-              className="py-2 hover:text-white transition"
+              className="py-2 hover:text-fg transition"
             >
               {link.label}
             </a>
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <CambiarTema />
+
           <a
             href="#contacto"
-            // Blanco sobre brand-500 da 4.45:1 y reprueba AA por poco en texto
-            // chico; brand-600 sube a 6.3:1. En hover aclara a brand-500.
-            className="text-sm bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg transition"
+            // Antes era `bg-brand-600 text-white`, que solo cierra contraste
+            // sobre el indigo original: en modo claro el acento es verde y en
+            // oscuro es menta, y el blanco encima no llega a AA en ninguno.
+            // `btn`/`btn-fg` invierten el fondo, que funciona en los dos.
+            className="text-sm bg-btn text-btn-fg px-4 py-2 rounded-lg hover:opacity-90 transition"
           >
             Conversemos
           </a>
@@ -62,7 +67,7 @@ export default function Nav() {
             aria-label={abierto ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
             aria-expanded={abierto}
             aria-controls="nav-menu-movil"
-            className="sm:hidden p-2 -mr-2 rounded-lg text-muted hover:text-white transition"
+            className="sm:hidden p-2 -mr-2 rounded-lg text-muted hover:text-fg transition"
           >
             <svg
               className="w-5 h-5"
@@ -93,7 +98,7 @@ export default function Nav() {
 
       <div
         id="nav-menu-movil"
-        className={`${abierto ? "block" : "hidden"} sm:hidden border-t border-white/5`}
+        className={`${abierto ? "block" : "hidden"} sm:hidden border-t border-line`}
       >
         <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col gap-1 text-sm text-muted">
           {navLinks.map((link) => (
@@ -101,7 +106,7 @@ export default function Nav() {
               key={link.href}
               href={link.href}
               onClick={() => setAbierto(false)}
-              className="py-2 hover:text-white transition"
+              className="py-2 hover:text-fg transition"
             >
               {link.label}
             </a>

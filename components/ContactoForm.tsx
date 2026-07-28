@@ -24,10 +24,10 @@ type Estado = "idle" | "exito" | "error";
 const CLASE_ETIQUETA = "block text-sm font-medium mb-2";
 
 const CLASE_INPUT =
-  "w-full rounded-lg bg-white/[0.03] border border-white/10 px-4 py-3 text-sm " +
-  "placeholder:text-subtle hover:border-white/20 transition disabled:opacity-60";
+  "w-full rounded-lg bg-panel border border-line px-4 py-3 text-sm " +
+  "placeholder:text-subtle hover:border-line-strong transition disabled:opacity-60";
 
-const CLASE_ERROR = "mt-2 text-xs text-red-400";
+const CLASE_ERROR = "mt-2 text-xs text-error";
 
 /** Campos que el servidor puede marcar como inválidos en su respuesta. */
 const CAMPOS_DEL_FORM = ["nombre", "email", "empresa", "mensaje"] as const;
@@ -121,20 +121,20 @@ export default function ContactoForm() {
   }
 
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-xl p-6 sm:p-8 text-left">
+    <div className="bg-panel border border-line rounded-xl p-6 sm:p-8 text-left">
       {/*
         Región viva siempre montada: si apareciera junto con el mensaje, los
         lectores de pantalla podrían no anunciarlo.
       */}
       <div role="status" aria-live="polite">
         {estado === "exito" && (
-          <p className="text-sm text-emerald-400">
+          <p className="text-sm text-exito">
             ¡Listo! Recibimos tu mensaje y te respondemos dentro de las próximas 24
             horas hábiles.
           </p>
         )}
         {estado === "error" && mensajeError !== "" && (
-          <p className="text-sm text-red-400">{mensajeError}</p>
+          <p className="text-sm text-error">{mensajeError}</p>
         )}
       </div>
 
@@ -259,7 +259,7 @@ export default function ContactoForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto bg-white text-black px-8 py-3.5 rounded-lg font-medium hover:bg-zinc-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto bg-btn text-btn-fg px-8 py-3.5 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Enviando…" : "Enviar mensaje"}
           </button>

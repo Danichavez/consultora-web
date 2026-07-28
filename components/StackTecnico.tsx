@@ -6,7 +6,7 @@ import { stack } from "@/content/stack";
  */
 export default function StackTecnico() {
   return (
-    <section className="py-16 px-6 border-t border-white/5">
+    <section className="py-16 px-6 border-t border-line">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-muted">
           {stack.map((tecnologia) => (

@@ -59,13 +59,13 @@ landingpage/
 ├── app/
 │   ├── layout.tsx            # nav, footer, fuente Inter, metadata global, GA4, JSON-LD
 │   ├── page.tsx              # home: ordena las secciones del sitio
-│   ├── globals.css           # Tailwind v4 + design tokens (colores, tipografía, foco)
+│   ├── globals.css           # Tailwind v4 + las DOS paletas (claro/oscuro) y el foco
 │   ├── icon.svg              # favicon
 │   ├── opengraph-image.tsx   # genera el PNG 1200x630 que se ve al compartir el link
 │   ├── sitemap.ts            # genera /sitemap.xml
 │   ├── robots.ts             # genera /robots.txt (apunta al sitemap)
 │   └── api/contacto/route.ts # endpoint del formulario → Resend
-├── components/               # Nav, Hero, ProblemaSolucion, Servicios,
+├── components/               # Nav + CambiarTema, Hero, ProblemaSolucion, Servicios,
 │                             # Proceso, Diferencial, Portafolio, StackTecnico,
 │                             # Contacto + ContactoForm, Footer, Analytics, JsonLd
 ├── content/                  # ← contenido editable sin tocar markup (ver más abajo)
@@ -86,7 +86,35 @@ landingpage/
                               # y el favicon se generan por código, no son archivos
 ```
 
-Los **design tokens** (el color de fondo `#0a0a0f`, el indigo de marca, los grises de texto que cumplen contraste AA, la fuente Inter) están definidos una sola vez en `app/globals.css` dentro del bloque `@theme`. Cambiar ahí un color lo cambia en todo el sitio.
+### Modo claro y modo oscuro
+
+El sitio tiene **dos paletas**, y las dos viven en `app/globals.css`:
+
+| Modo | Paleta | Fondo | Acento |
+|------|--------|-------|--------|
+| Claro | Okavango (delta de Botswana) | papel `#FBFAF4` | pasto `#4F6B1C` |
+| Oscuro | costa nocturna | navy `#101733` | menta `#8DD5CA` |
+
+Cómo se elige el modo:
+
+1. **Por defecto sigue al sistema operativo** (`prefers-color-scheme`). Sin JavaScript, sin parpadeo.
+2. **El botón del nav** (☾ / ☀) lo fuerza a uno u otro y lo guarda en `localStorage`. Esa elección le gana al sistema.
+
+**Regla que no hay que romper: ningún componente escribe un color literal.** Nada de `bg-white/5`, `text-black` ni `border-zinc-700` — todos asumen un fondo y se rompen al invertirlo. Todo pasa por los tokens semánticos, que cada modo redefine:
+
+| Token | Para qué |
+|-------|----------|
+| `bg-base` · `bg-panel` · `bg-warm` | fondo de página · tarjetas · franjas cálidas |
+| `text-fg` · `text-muted` · `text-subtle` | texto principal · secundario · pies y captions |
+| `border-line` · `border-line-strong` | borde sutil · borde que identifica un control |
+| `text-brand-400/500/600` | acento principal |
+| `text-warmth` · `text-water` · `text-alt` | acentos secundarios (inversión · técnico · cuarto color) |
+| `text-exito` · `text-error` | color semántico, independiente de la marca |
+| `bg-btn` · `text-btn-fg` | botón primario (invierte el fondo en los dos modos) |
+
+Los contrastes están medidos: **el par más ajustado es 3.35:1 en claro y 3.70:1 en oscuro**, ambos sobre el mínimo de 3:1 para bordes; todo el texto supera 4.5:1. Si cambiás un color, **volvé a medir** — el verde de la foto original (`#A9C566`) es precioso y sobre fondo claro da 1.9:1, ilegible.
+
+> ⚠️ **Ojo con `app/opengraph-image.tsx`.** Se genera en build, fuera de Tailwind, y **no puede leer estos tokens**: tiene los colores copiados a mano. Si cambia la paleta, hay que cambiarlos ahí también. Usa siempre la nocturna, porque una imagen no puede tener dos modos.
 
 ### SEO y metadata
 

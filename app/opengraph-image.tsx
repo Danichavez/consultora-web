@@ -21,13 +21,24 @@ export const size = {
 
 export const contentType = "image/png";
 
-/** Paleta, alineada con los tokens de `app/globals.css`. */
-const INK = "#0a0a0f";
-const BRAND = "#818cf8";
-const EMERALD = "#34d399";
-const MUTED = "#a1a1aa";
-const SUBTLE = "#8f8f9a";
-const DEGRADADO = `linear-gradient(90deg, ${BRAND}, ${EMERALD})`;
+/**
+ * Paleta. Una imagen no puede tener dos modos, así que esta usa **siempre la
+ * nocturna** — es la más distintiva de las dos y se ve bien sobre los fondos
+ * claros de LinkedIn y WhatsApp, donde el preview aparece recortado.
+ *
+ * Estos valores están copiados de los tokens de `app/globals.css`, no
+ * importados: este archivo se ejecuta en build fuera del pipeline de Tailwind
+ * y no puede leer variables CSS. **Si cambia la paleta, hay que cambiarlos a
+ * mano acá también** — es la clase de dato duplicado que envejece en silencio.
+ */
+const FONDO = "#101733";
+const BRAND = "#8dd5ca";
+const ROSA = "#dcaaa8";
+const MALVA = "#b98ec4";
+const TEXTO = "#e9e7f4";
+const MUTED = "#a7adcb";
+const SUBTLE = "#9098bb";
+const DEGRADADO = `linear-gradient(90deg, ${BRAND}, ${ROSA} 55%, ${MALVA})`;
 
 export default function Image() {
   const dominio = new URL(siteUrl).host;
@@ -42,8 +53,8 @@ export default function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: INK,
-          color: "#ffffff",
+          backgroundColor: FONDO,
+          color: TEXTO,
           padding: "72px 80px",
         }}
       >
@@ -58,7 +69,7 @@ export default function Image() {
           }}
         >
           <div style={{ display: "flex", fontWeight: 600 }}>
-            <span style={{ color: "#ffffff" }}>{site.logotipo}</span>
+            <span style={{ color: TEXTO }}>{site.logotipo}</span>
             <span style={{ color: BRAND }}>.</span>
           </div>
           <div style={{ display: "flex", color: MUTED }}>{site.ciudad}</div>
@@ -123,17 +134,17 @@ export default function Image() {
             alignItems: "center",
             fontSize: 24,
             color: SUBTLE,
-            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+            borderTop: "1px solid rgba(233, 231, 244, 0.10)",
             paddingTop: 28,
           }}
         >
           <div style={{ display: "flex" }}>
             AWS · Pipelines · Governance · BI · FinOps
           </div>
-          <div style={{ display: "flex", color: EMERALD }}>{dominio}</div>
+          <div style={{ display: "flex", color: BRAND }}>{dominio}</div>
         </div>
 
-        {/* Franja degradada al pie, el acento indigo → emerald del sitio. */}
+        {/* Franja degradada al pie: menta → rosa → malva, el cielo de la paleta. */}
         <div
           style={{
             position: "absolute",
