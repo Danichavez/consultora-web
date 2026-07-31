@@ -1,21 +1,38 @@
 /**
- * Textos del hero — lo primero que lee un visitante y la copy que más se
- * ajusta con el tiempo. Por eso vive acá y no dentro del componente.
+ * Textos del hero — lo primero que lee un visitante y la copy que más se ajusta
+ * con el tiempo. Por eso vive acá y no dentro del componente.
  *
- * `tituloDestacado` se renderiza en una segunda línea con el degradado
- * indigo→emerald; `titulo` va arriba, en blanco.
+ * `tituloDestacado` se renderiza en una segunda línea con `.text-gradient`;
+ * `titulo` va arriba, en `text-fg`.
+ *
+ * Voz plural, sin lenguaje corporativo abstracto y sin nombres propios: son las
+ * tres reglas de copy de la spec del rediseño.
  */
 
+/**
+ * ⚠️ El titular NO lleva cifras, y es deliberado.
+ *
+ * La versión aprobada en `fix1` decía "+1.000 horas al año". Ese número se
+ * apoyaba en un único lugar de la página —las 1.100 horas del caso real— y ese
+ * bloque se quitó el 2026-07-31. Un titular con una cifra que nada en la página
+ * respalda es peor que uno sin cifra: es la afirmación más visible del sitio y
+ * la primera que un CTO va a pedir que justifiquen.
+ *
+ * Si vuelve una prueba cuantificada a la página, el titular puede volver a
+ * hablar en números. Mientras tanto, la promesa es concreta pero no numérica.
+ */
 export const hero = {
-  disponibilidad: "Disponible para nuevos proyectos",
-  titulo: "Arquitectura de datos",
-  tituloDestacado: "que produce resultados.",
+  titulo: "Eliminamos los procesos manuales de datos",
+  tituloDestacado: "que tu equipo rehace todas las semanas.",
   bajada:
-    "Diseñamos plataformas de datos en AWS para empresas medianas en Chile. Pipelines automatizados, governance, BI y agentes IA — implementados en tu cuenta, con código reproducible.",
-  ctaPrincipal: "Agendar llamada gratuita",
+    "Diagnóstico en 2 semanas. Implementación en tu cuenta AWS. Sin dependencia, sin licencias de terceros, sin sorpresas.",
   /**
-   * Apuntaba al caso de estudio, que se quitó del sitio (2026-07-27). Ahora
-   * lleva al portafolio (`#trabajo`), que pasó a ser la prueba principal.
+   * Línea de credenciales bajo el CTA. Se renderiza en `--font-mono` y en
+   * `text-subtle`: es prueba, no titular.
    */
-  ctaSecundario: "Ver proyectos",
+  proof: [
+    "AWS Certified",
+    "Producción en industria regulada",
+    "Resultados en semanas, no meses",
+  ],
 } as const;

@@ -1,4 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="18" fill="#0a0a0f" />
-  <path d="M50 18 L82 50 L50 82 L18 50 Z" fill="#818cf8" />
+<!--
+  Favicon de ArqData: prompt de terminal (chevron + cursor) en ámbar de fósforo
+  sobre el casi-negro de la paleta oscura.
+
+  Dos criterios de diseño, los dos por el tamaño real de uso (16px):
+  - Formas gruesas y separadas, sin letras: "ArqData" a 16px es una mancha.
+  - Un solo color de tinta sobre un fondo propio, así el ícono no depende del
+    tema del navegador ni del color de la pestaña.
+
+  Colores copiados de los tokens `--term-*` de `app/globals.css` (mismo dato
+  duplicado que `opengraph-image.tsx`: un SVG no lee variables CSS del sitio).
+  Contraste tinta/fondo: 10.9:1.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="ArqData">
+  <rect width="100" height="100" rx="18" fill="#0b0b0c" />
+  <path
+    d="M26 32 L48 50 L26 68"
+    fill="none"
+    stroke="#ffb224"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <rect x="56" y="60" width="26" height="11" rx="2" fill="#ffb224" />
 </svg>

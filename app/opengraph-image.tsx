@@ -21,13 +21,35 @@ export const size = {
 
 export const contentType = "image/png";
 
-/** Paleta, alineada con los tokens de `app/globals.css`. */
-const INK = "#0a0a0f";
-const BRAND = "#818cf8";
-const EMERALD = "#34d399";
-const MUTED = "#a1a1aa";
-const SUBTLE = "#8f8f9a";
-const DEGRADADO = `linear-gradient(90deg, ${BRAND}, ${EMERALD})`;
+/**
+ * Paleta. Una imagen no puede tener dos modos, así que esta usa **siempre el
+ * terminal oscuro** — es el más distintivo de los dos y se recorta bien sobre
+ * los fondos claros de LinkedIn y WhatsApp, donde el preview aparece embebido.
+ *
+ * ⚠️ Estos valores son una **copia a mano** de los tokens `--term-*` de
+ * `app/globals.css`, no un import: este archivo se ejecuta en build fuera del
+ * pipeline de Tailwind y no puede leer variables CSS. **Si cambia la paleta hay
+ * que cambiarlos también acá** — es la clase de dato duplicado que envejece en
+ * silencio, y ya pasó: el rediseño a terminal amber encontró esta imagen todavía
+ * pintada con la paleta anterior (navy y menta).
+ */
+const FONDO = "#0b0b0c"; // --term-base
+const BRAND = "#ffb224"; // --term-brand-500 (ámbar de fósforo) — 10.9:1 sobre el fondo
+const BRAND_CLARO = "#ffc85c"; // --term-brand-400 — 12.8:1
+const BRAND_OSCURO = "#e8981a"; // --term-brand-600 — 8.4:1
+const WARMTH = "#e0a06a"; // --term-warmth — 8.8:1
+const TEXTO = "#ececed"; // --term-fg — 16.7:1
+const MUTED = "#a5a29c"; // --term-muted — 7.7:1
+const SUBTLE = "#8a857c"; // --term-subtle — 5.4:1
+const LINEA = "#26262a"; // --term-line
+
+/**
+ * Mismo barrido que `.text-gradient` en `globals.css` (brand → warmth → brand
+ * oscuro), para que la imagen y el titular del sitio se lean como la misma
+ * marca. Acá va como fondo de una franja, nunca como `background-clip: text`:
+ * eso es frágil en Satori.
+ */
+const DEGRADADO = `linear-gradient(90deg, ${BRAND_CLARO}, ${WARMTH} 55%, ${BRAND_OSCURO})`;
 
 export default function Image() {
   const dominio = new URL(siteUrl).host;
@@ -42,8 +64,8 @@ export default function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: INK,
-          color: "#ffffff",
+          backgroundColor: FONDO,
+          color: TEXTO,
           padding: "72px 80px",
         }}
       >
@@ -57,9 +79,23 @@ export default function Image() {
             fontSize: 26,
           }}
         >
-          <div style={{ display: "flex", fontWeight: 600 }}>
-            <span style={{ color: "#ffffff" }}>{site.logotipo}</span>
-            <span style={{ color: BRAND }}>.</span>
+          <div style={{ display: "flex", alignItems: "center", fontWeight: 600 }}>
+            <span style={{ color: BRAND }}>~$</span>
+            <span style={{ color: TEXTO, marginLeft: 12 }}>{site.logotipo}</span>
+            {/*
+              El cursor va dibujado como un rectángulo, no como un carácter de
+              bloque (`▍`): Satori usa su fuente por defecto y un glifo que esa
+              fuente no tenga se renderiza como tofu. Un div siempre existe.
+            */}
+            <div
+              style={{
+                display: "flex",
+                width: 13,
+                height: 26,
+                backgroundColor: BRAND,
+                marginLeft: 8,
+              }}
+            />
           </div>
           <div style={{ display: "flex", color: MUTED }}>{site.ciudad}</div>
         </div>
@@ -123,17 +159,17 @@ export default function Image() {
             alignItems: "center",
             fontSize: 24,
             color: SUBTLE,
-            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+            borderTop: `1px solid ${LINEA}`,
             paddingTop: 28,
           }}
         >
           <div style={{ display: "flex" }}>
             AWS · Pipelines · Governance · BI · FinOps
           </div>
-          <div style={{ display: "flex", color: EMERALD }}>{dominio}</div>
+          <div style={{ display: "flex", color: BRAND }}>{dominio}</div>
         </div>
 
-        {/* Franja degradada al pie, el acento indigo → emerald del sitio. */}
+        {/* Franja degradada al pie: el barrido de ámbar de la rampa `brand`. */}
         <div
           style={{
             position: "absolute",

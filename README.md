@@ -32,6 +32,8 @@ El sitio **levanta sin configurar nada**: sin `RESEND_API_KEY` el formulario mue
 | `npm run build` | Build de producción — correrlo antes de dar por cerrada una tarea |
 | `npm start` | Sirve el build de producción localmente (requiere `npm run build` antes) |
 | `npm run lint` | ESLint (config de `eslint-config-next`) |
+| `npm test` | Suite de tests con Vitest (74 tests, < 1 segundo) |
+| `npm run test:watch` | Los mismos tests, reejecutándose al guardar |
 
 ## Variables de entorno
 
@@ -59,13 +61,13 @@ landingpage/
 ├── app/
 │   ├── layout.tsx            # nav, footer, fuente Inter, metadata global, GA4, JSON-LD
 │   ├── page.tsx              # home: ordena las secciones del sitio
-│   ├── globals.css           # Tailwind v4 + design tokens (colores, tipografía, foco)
+│   ├── globals.css           # Tailwind v4 + las DOS paletas (claro/oscuro) y el foco
 │   ├── icon.svg              # favicon
 │   ├── opengraph-image.tsx   # genera el PNG 1200x630 que se ve al compartir el link
 │   ├── sitemap.ts            # genera /sitemap.xml
 │   ├── robots.ts             # genera /robots.txt (apunta al sitemap)
 │   └── api/contacto/route.ts # endpoint del formulario → Resend
-├── components/               # Nav, Hero, ProblemaSolucion, Servicios,
+├── components/               # Nav + CambiarTema, Hero, ProblemaSolucion, Servicios,
 │                             # Proceso, Diferencial, Portafolio, StackTecnico,
 │                             # Contacto + ContactoForm, Footer, Analytics, JsonLd
 ├── content/                  # ← contenido editable sin tocar markup (ver más abajo)
@@ -86,7 +88,35 @@ landingpage/
                               # y el favicon se generan por código, no son archivos
 ```
 
-Los **design tokens** (el color de fondo `#0a0a0f`, el indigo de marca, los grises de texto que cumplen contraste AA, la fuente Inter) están definidos una sola vez en `app/globals.css` dentro del bloque `@theme`. Cambiar ahí un color lo cambia en todo el sitio.
+### Modo claro y modo oscuro
+
+El sitio tiene **dos paletas**, y las dos viven en `app/globals.css`:
+
+| Modo | Paleta | Fondo | Acento |
+|------|--------|-------|--------|
+| Claro | Okavango (delta de Botswana) | papel `#FBFAF4` | pasto `#4F6B1C` |
+| Oscuro | costa nocturna | navy `#101733` | menta `#8DD5CA` |
+
+Cómo se elige el modo:
+
+1. **Por defecto sigue al sistema operativo** (`prefers-color-scheme`). Sin JavaScript, sin parpadeo.
+2. **El botón del nav** (☾ / ☀) lo fuerza a uno u otro y lo guarda en `localStorage`. Esa elección le gana al sistema.
+
+**Regla que no hay que romper: ningún componente escribe un color literal.** Nada de `bg-white/5`, `text-black` ni `border-zinc-700` — todos asumen un fondo y se rompen al invertirlo. Todo pasa por los tokens semánticos, que cada modo redefine:
+
+| Token | Para qué |
+|-------|----------|
+| `bg-base` · `bg-panel` · `bg-warm` | fondo de página · tarjetas · franjas cálidas |
+| `text-fg` · `text-muted` · `text-subtle` | texto principal · secundario · pies y captions |
+| `border-line` · `border-line-strong` | borde sutil · borde que identifica un control |
+| `text-brand-400/500/600` | acento principal |
+| `text-warmth` · `text-water` · `text-alt` | acentos secundarios (inversión · técnico · cuarto color) |
+| `text-exito` · `text-error` | color semántico, independiente de la marca |
+| `bg-btn` · `text-btn-fg` | botón primario (invierte el fondo en los dos modos) |
+
+Los contrastes están medidos: **el par más ajustado es 3.35:1 en claro y 3.70:1 en oscuro**, ambos sobre el mínimo de 3:1 para bordes; todo el texto supera 4.5:1. Si cambiás un color, **volvé a medir** — el verde de la foto original (`#A9C566`) es precioso y sobre fondo claro da 1.9:1, ilegible.
+
+> ⚠️ **Ojo con `app/opengraph-image.tsx`.** Se genera en build, fuera de Tailwind, y **no puede leer estos tokens**: tiene los colores copiados a mano. Si cambia la paleta, hay que cambiarlos ahí también. Usa siempre la nocturna, porque una imagen no puede tener dos modos.
 
 ### SEO y metadata
 
@@ -227,6 +257,30 @@ Detalles que importan:
 
 ---
 
+## Tests
+
+```bash
+npm test
+```
+
+74 tests con **Vitest**, corren en menos de un segundo y no necesitan navegador ni red.
+
+**Qué se testea y por qué ese recorte.** No se testea el sitio: las 8 secciones solo hacen `.map()` sobre `content/`, y verificar eso sería comprobar que React recorre un array. Lo que sí tiene tests es la lógica donde algo puede romperse **en silencio** — y el criterio para elegirla fue mirar los bugs que este proyecto ya tuvo de verdad:
+
+| Archivo | Qué protege |
+|---------|-------------|
+| `lib/leads.test.ts` | Que el esquema **acepte** el honeypot. Cuando lo rechazaba, un gestor de contraseñas rellenando el campo oculto dejaba el botón "Enviar" sin hacer nada, para siempre y sin mensaje. El build y Lighthouse 100/100 pasaban igual |
+| `lib/env.test.ts` | Que una variable de entorno **definida pero vacía** cuente como ausente. Es el caso típico de Vercel y ya rompió cosas lejos del origen |
+| `lib/rate-limit.test.ts` | La ventana de 5/10 min, la poda del mapa y el agrupado de IPv6 por /64 (sin eso, rotar de dirección evade el límite) |
+| `lib/email.test.ts` | El escapado del HTML del email y que el asunto no admita saltos de línea (inyección de headers SMTP) |
+| `app/api/contacto/route.test.ts` | El endpoint completo con el envío mockeado: JSON roto, array como body, honeypot, origen cruzado, tamaño, rate limit, 200/503/502 |
+
+**La suite está verificada por mutación**, no solo por estar en verde: se rompió a propósito cada uno de los arreglos que dice proteger y se confirmó que la suite falla. Un test que pasa siempre no sirve de nada.
+
+**Lo que los tests NO cubren** y sigue necesitando ojo humano: que el email llegue de verdad, la paridad visual con la maqueta, Lighthouse, el móvil real, y que Calendly agende.
+
+---
+
 ## Pendientes que bloquean el lanzamiento
 
 **Ya resuelto:** dominio (interino), repo y deploy en Vercel, GA4 midiendo, Calendly agendando.
@@ -242,4 +296,4 @@ Pendientes técnicos conocidos:
 - [ ] **Formulario sin probar en producción** — el endpoint responde y valida bien en vivo, pero nunca se envió un lead real desde el sitio publicado. En local con el sandbox sí funcionó.
 - [ ] **Calendly como link, no como embed** — funciona, pero el plan original pedía el widget inline.
 - [ ] **Blog en MDX** — planificado, **no implementado**: no existen `app/blog/` ni `content/blog/`. La base ya está preparada: `lib/seo.ts` tiene la plantilla de títulos y `app/sitemap.ts` tiene la ruta `/blog` comentada, lista para descomentar.
-- [ ] **Suite de tests** — todavía no hay tests ni framework de testing instalado.
+- [ ] **CI** — la suite existe pero nada la corre automáticamente. Falta un workflow de GitHub Actions con `tsc` + `lint` + `test` + `build` en cada push y PR; sin eso los tests se dejan de correr en dos semanas.

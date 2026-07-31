@@ -2,7 +2,12 @@ import { Resend } from "resend";
 
 import { site } from "@/content/site";
 import { envCon } from "@/lib/env";
-import type { Lead } from "@/lib/leads";
+import {
+  esCorreoPersonal,
+  etiquetaDesafio,
+  etiquetaRol,
+  type Lead,
+} from "@/lib/leads";
 
 /**
  * Notificación por email de un lead nuevo, vía Resend.
@@ -54,24 +59,57 @@ function unaSolaLinea(valor: string): string {
   return valor.replace(/[\r\n\x00]+/g, " ").trim();
 }
 
-/** `Nuevo lead: Ana Pérez (Acme)` — pensado para escanear la bandeja de un vistazo. */
+/**
+ * Email del lead, anotado si viene de un dominio de correo gratuito.
+ *
+ * Es **solo informativo**: sirve para priorizar la respuesta, no para descartar
+ * a nadie. El formulario no bloquea estos dominios a propósito (el correo de la
+ * propia consultora es uno) — la nota vive únicamente acá y en la sugerencia en
+ * gris del formulario.
+ */
+function emailAnotado(lead: Lead): string {
+  return esCorreoPersonal(lead.email)
+    ? `${lead.email} (correo personal)`
+    : lead.email;
+}
+
+/**
+ * Las cuatro filas del lead más la hora, en el mismo orden en texto y en HTML.
+ * `rol` y `desafio` viajan como slug pero se muestran con su etiqueta: nadie
+ * debería tener que traducir `gerente-ti` mentalmente al leer la bandeja.
+ */
+function filasLead(lead: Lead): Array<[string, string]> {
+  return [
+    ["Nombre", lead.nombre],
+    ["Email", emailAnotado(lead)],
+    ["Rol", etiquetaRol(lead.rol)],
+    ["Desafío", etiquetaDesafio(lead.desafio)],
+    ["Recibido", `${fechaLegible(lead.recibidoEn)} (${lead.recibidoEn})`],
+  ];
+}
+
+/**
+ * `Nuevo lead: Ana Pérez — Costos cloud creciendo sin visibilidad`.
+ *
+ * El desafío va en el asunto porque es el único dato que permite decidir si
+ * responder ahora o después sin abrir el email.
+ */
 export function asuntoLead(lead: Lead): string {
-  const empresa = lead.empresa ?? "sin empresa";
-  return unaSolaLinea(`Nuevo lead: ${lead.nombre} (${empresa})`);
+  return unaSolaLinea(
+    `Nuevo lead: ${lead.nombre} — ${etiquetaDesafio(lead.desafio)}`,
+  );
 }
 
 /** Cuerpo en texto plano con todos los campos del lead. */
 export function cuerpoTextoLead(lead: Lead): string {
+  const ancho = Math.max(...filasLead(lead).map(([etiqueta]) => etiqueta.length));
+
   return [
-    `Nuevo lead desde ${site.nombre} — formulario de contacto`,
+    `Nuevo lead desde el formulario de ${site.nombre}`,
     "",
-    `Nombre:   ${lead.nombre}`,
-    `Email:    ${lead.email}`,
-    `Empresa:  ${lead.empresa ?? "—"}`,
-    `Recibido: ${fechaLegible(lead.recibidoEn)} (${lead.recibidoEn})`,
-    "",
-    "Mensaje:",
-    lead.mensaje,
+    ...filasLead(lead).map(
+      ([etiqueta, valor]) => `${`${etiqueta}:`.padEnd(ancho + 2)}${valor}`,
+    ),
     "",
     "—",
     "Responde directo a este email: el remitente del lead está en Reply-To.",
@@ -80,14 +118,7 @@ export function cuerpoTextoLead(lead: Lead): string {
 
 /** Cuerpo HTML equivalente. Todo dato del lead va escapado. */
 export function cuerpoHtmlLead(lead: Lead): string {
-  const filas: Array<[string, string]> = [
-    ["Nombre", lead.nombre],
-    ["Email", lead.email],
-    ["Empresa", lead.empresa ?? "—"],
-    ["Recibido", `${fechaLegible(lead.recibidoEn)} (${lead.recibidoEn})`],
-  ];
-
-  const celdas = filas
+  const celdas = filasLead(lead)
     .map(
       ([etiqueta, valor]) =>
         `<tr><td style="padding:4px 12px 4px 0;color:#71717a;">${escaparHtml(
@@ -98,12 +129,10 @@ export function cuerpoHtmlLead(lead: Lead): string {
 
   return [
     `<div style="font-family:ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:1.6;color:#18181b;">`,
-    `<h2 style="font-size:16px;margin:0 0 16px;">Nuevo lead desde el formulario de contacto</h2>`,
+    `<h2 style="font-size:16px;margin:0 0 16px;">Nuevo lead desde el formulario de ${escaparHtml(
+      site.nombre,
+    )}</h2>`,
     `<table style="border-collapse:collapse;margin-bottom:16px;">${celdas}</table>`,
-    `<p style="margin:0 0 4px;color:#71717a;">Mensaje</p>`,
-    `<div style="white-space:pre-wrap;padding:12px;background:#f4f4f5;border-radius:8px;">${escaparHtml(
-      lead.mensaje,
-    )}</div>`,
     `<p style="margin:16px 0 0;color:#71717a;font-size:12px;">Responde directo a este email: el remitente del lead está en Reply-To.</p>`,
     `</div>`,
   ].join("");

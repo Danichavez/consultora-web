@@ -1,56 +1,48 @@
 /**
- * Diferenciales y comparación problema/solución del home.
+ * Diferenciales del home — las tres garantías.
+ *
+ * Se pasó de 4 tarjetas a 3 en el rediseño (2026-07-31). Voz plural y por rol,
+ * sin nombres propios: es la narrativa aprobada.
  */
+
+/**
+ * Acentos disponibles. Son **roles**, no colores: cada tema les asigna un valor
+ * distinto (en claro `calido` es tierra quemada, en oscuro es ámbar pálido).
+ * Antes se llamaban `emerald`/`amber`/`sky` y quedaron obsoletos al cambiar la
+ * paleta — un nombre que miente sobre el color es peor que ninguno.
+ */
+export type Acento = "marca" | "calido" | "agua" | "alterno";
 
 export interface Diferencial {
   titulo: string;
   descripcion: string;
   /** Selecciona el ícono SVG en el componente. */
-  icono: "codigo" | "candado" | "escudo" | "rayo";
-  acento: "brand" | "emerald" | "amber" | "sky";
+  icono: "persona" | "candado" | "diana";
+  acento: Acento;
 }
+
+export const tituloDiferencial = "Por qué no somos una consultora más";
 
 export const diferenciales: Diferencial[] = [
   {
-    titulo: "Quien diseña, implementa",
+    titulo: "Profesionales senior, directo",
     descripcion:
-      "Una dupla fija: la arquitecta que diseña tus datos y el ingeniero que construye la IA y la automatización. Los mismos dos, de principio a fin, sin traspasos.",
-    icono: "codigo",
-    acento: "brand",
+      "Quien lidera tu proyecto es quien lo ejecuta. Sin capas de gestión, sin juniors rotando, sin traspasos entre equipos.",
+    icono: "persona",
+    acento: "marca",
   },
   {
-    titulo: "Ownership, no dependencia",
+    titulo: "Cero dependencia",
     descripcion:
-      "Todo en tu cuenta AWS. Código tuyo. IaC reproducible. Si mañana no nos necesitas, sigues operando solo.",
+      "Todo en tu cuenta AWS. Terraform, CI/CD, código documentado. Si terminamos y no nos necesitas, sigues operando solo.",
     icono: "candado",
-    acento: "emerald",
+    acento: "alterno",
   },
   {
-    titulo: "Producción regulada",
+    titulo: "Riesgo acotado",
     descripcion:
-      "8+ años en industria financiera. Auditoría, compliance, alta disponibilidad. Si funciona ahí, funciona en cualquier lado.",
-    icono: "escudo",
-    acento: "amber",
+      "Empezamos con un diagnóstico de 2 semanas. Si no encontramos valor concreto, no te proponemos nada más.",
+    icono: "diana",
+    acento: "calido",
   },
-  {
-    titulo: "Del dato a la automatización",
-    descripcion:
-      "La misma dupla que ordena tus datos te construye los agentes de IA y las automatizaciones encima. In-house, nada tercerizado.",
-    icono: "rayo",
-    acento: "sky",
-  },
-];
-
-export const problemas: string[] = [
-  "Reportes manuales que toman días",
-  "Factura de AWS que crece sin visibilidad",
-  "Nadie confía en los números",
-  "Sin arquitecto de datos en el equipo",
-];
-
-export const soluciones: string[] = [
-  "Pipelines automatizados que corren solos",
-  "Costos claros por equipo y por pipeline",
-  "Datos validados con calidad automática",
-  "Todo en tu cuenta AWS, código tuyo",
 ];

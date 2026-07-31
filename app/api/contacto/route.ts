@@ -39,6 +39,17 @@ function esObjetoPlano(valor: unknown): valor is Record<string, unknown> {
 const MAX_BYTES_BODY = 16 * 1024;
 
 /**
+ * Claves de error que nunca se le devuelven al cliente por campo.
+ *
+ * - `website` es el honeypot: reportarlo le confirma al bot que existe.
+ * - `tipo` es el discriminante de la unión, no un control del formulario. Que
+ *   falte o venga mal es un bug nuestro, no algo que la persona pueda corregir;
+ *   marcarlo dejaría un "Revisa los campos marcados" apuntando a nada. Filtrado
+ *   acá, ese caso cae al mensaje genérico de más abajo.
+ */
+const NO_REPORTABLES = new Set<string>([honeypotField, "tipo"]);
+
+/**
  * Rechaza POSTs cross-origin hechos desde el navegador.
  *
  * Se compara contra el `host` de la propia request y no contra una URL de
@@ -88,7 +99,7 @@ export async function POST(request: Request): Promise<Response> {
   const largo = Number(request.headers.get("content-length"));
   if (Number.isFinite(largo) && largo > MAX_BYTES_BODY) {
     return responder(
-      { ok: false, error: "El mensaje es demasiado largo." },
+      { ok: false, error: "La solicitud es demasiado grande." },
       413,
     );
   }
@@ -127,8 +138,7 @@ export async function POST(request: Request): Promise<Response> {
     const { fieldErrors } = z.flattenError(analisis.error);
     const campos: Record<string, string[]> = {};
     for (const [clave, mensajes] of Object.entries(fieldErrors)) {
-      // El honeypot no se le reporta al cliente: no le damos pistas al bot.
-      if (clave === honeypotField) continue;
+      if (NO_REPORTABLES.has(clave)) continue;
       if (mensajes && mensajes.length > 0) campos[clave] = mensajes;
     }
 
@@ -183,7 +193,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Solo el id del envío: es lo que permite rastrear un mensaje perdido en el
-  // panel de Resend. Nada del lead (nombre, email, mensaje) va al log.
+  // panel de Resend. Nada del lead (nombre, email, rol, desafío) va al log.
   console.info(`[contacto] envío ok (id: ${envio.id ?? "sin id"})`);
 
   return responder({ ok: true }, 200);
