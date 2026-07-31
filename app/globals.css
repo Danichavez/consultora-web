@@ -1,156 +1,195 @@
 @import "tailwindcss";
 
 /*
- * SISTEMA DE TEMAS — dos paletas, dos modos.
+ * SISTEMA DE TEMAS — Terminal amber, dos modos.
  *
- *   Claro  → Okavango (delta de Botswana): papel, pasto, tierra, canal.
- *   Oscuro → costa nocturna: navy, menta, rosa, malva.
+ *   Oscuro → terminal: casi-negro, ámbar de fósforo, texto hueso.
+ *   Claro  → el mismo terminal impreso en papel: ámbar quemado sobre papel cálido.
  *
- * Cómo funciona: `@theme` define los tokens con los valores del modo CLARO,
- * que es el que Tailwind usa para generar las utilidades (`bg-base`,
- * `text-fg`, `border-line`…). Después, dos bloques redefinen esas mismas
- * variables para el modo oscuro — las utilidades ya generadas apuntan a
- * `var(--color-*)`, así que cambiar la variable cambia el sitio entero.
+ * Por qué el ámbar NO es el mismo color en los dos modos: `#ffb224` da 10.9:1
+ * sobre el negro y 1.70:1 sobre papel. Un acento que brilla en oscuro suele ser
+ * ilegible en claro (ya nos pasó con el verde de la paleta anterior), así que el
+ * token `brand` de modo claro es ámbar quemado oscuro, no el mismo ámbar bajado
+ * de opacidad.
+ *
+ * Cómo funciona: `@theme` define los tokens con los valores del modo CLARO, que
+ * es el que Tailwind usa para generar las utilidades (`bg-base`, `text-fg`,
+ * `border-line`…). Después, dos bloques redefinen esas mismas variables para el
+ * modo oscuro — las utilidades ya generadas apuntan a `var(--color-*)`, así que
+ * cambiar la variable cambia el sitio entero.
  *
  * Los dos bloques cubren los dos caminos:
- *   1. `@media (prefers-color-scheme: dark)` → la preferencia del sistema,
- *      que aplica sin JavaScript. El `:not([data-theme="light"])` deja que
- *      una elección manual gane por encima del sistema.
+ *   1. `@media (prefers-color-scheme: dark)` → la preferencia del sistema, que
+ *      aplica sin JavaScript. El `:not([data-theme="light"])` deja que una
+ *      elección manual gane por encima del sistema.
  *   2. `[data-theme="dark"]` → la elección manual del botón del nav.
  *
  * NINGÚN componente debe volver a escribir un color literal (`bg-white/5`,
- * `text-black`, `border-zinc-700`): esos asumen un fondo y se rompen al
- * invertirlo. Todo pasa por estos tokens.
+ * `text-black`, `border-zinc-700`, `text-amber-500`): esos asumen un fondo y se
+ * rompen al invertirlo. Todo pasa por estos tokens.
+ *
+ * Los valores de contraste anotados abajo los midió `/seo` con la fórmula WCAG.
+ * Al tocar un color hay que volver a medir: los pares que fallan nunca son los
+ * obvios (el texto principal da 16:1), son los grises terciarios y los bordes.
  */
 @theme {
-  /* --- Superficies y texto (modo claro) --- */
-  --color-base: #fbfaf4; /* fondo de página: papel, no crema */
+  /* --- Superficies y texto (modo claro: papel cálido) --- */
+  --color-base: #faf8f4; /* fondo de página: papel, no blanco */
   --color-panel: #ffffff; /* tarjetas y campos */
-  --color-warm: #f7f1da; /* franjas cálidas: la crema del delta */
-  --color-fg: #1e2410; /* texto principal: tinta oliva */
-  --color-muted: #55632f; /* texto secundario */
-  --color-subtle: #66743f; /* pies, captions, placeholders — 4.86:1 */
-  --color-line: #e6e1cb; /* bordes sutiles */
-  --color-line-strong: #94895c; /* bordes que identifican un control — 3.35:1 */
+  --color-warm: #f4efe4; /* franjas cálidas */
+  --color-fg: #1a1815; /* texto principal — 16.7:1 */
+  --color-muted: #55504a; /* texto secundario — 7.5:1 */
+  --color-subtle: #6e675e; /* pies, captions, placeholders — 5.3:1 */
+  --color-line: #e8e2d6; /* bordes sutiles */
+  --color-line-strong: #8d857a; /* bordes de control — 3.4:1 */
 
-  /* --- Acento principal: el pasto del delta, bajado hasta cumplir AA --- */
-  --color-brand-400: #5c7a22;
-  --color-brand-500: #4f6b1c;
-  --color-brand-600: #445e16;
+  /*
+   * --- Acento: ámbar quemado. En claro tiene que ser oscuro para cumplir AA ---
+   *
+   * La rampa completa se corrió un paso a oscuro (2026-07-31, medida por `/seo`).
+   * El original —400 `#b06a00`, 500 `#9a5b00`— reprobaba: `brand-400` daba
+   * 4.03:1 sobre `base`, y sobre el fondo teñido del badge del hero
+   * (`bg-brand-500/10`, que compone a `#efe7dc`) hasta `brand-500` se quedaba en
+   * 4.46:1. Ese tinte del 10% es el par más exigente de la paleta clara y es el
+   * que fija el piso: subir solo `brand-400` lo dejaba igual de reprobado o lo
+   * volvía más oscuro que `brand-500`, invirtiendo la rampa. Por eso se
+   * re-espaciaron los tres pasos juntos y no se parcheó un token suelto.
+   *
+   * Ratios medidos → base / panel / warm / badge (`brand-500/10` sobre base):
+   */
+  --color-brand-400: #965900; /* 5.31 · 5.64 · 4.92 · 4.60 */
+  --color-brand-500: #8a5200; /* 6.02 · 6.39 · 5.57 · 5.21 */
+  --color-brand-600: #7f4a00; /* 6.87 · 7.29 · 6.35 · 5.95 */
 
   /* --- Acentos secundarios --- */
-  --color-warmth: #8a5614; /* tierra: nivel de inversión, datos cálidos */
-  --color-water: #2f4a9c; /* canal: proceso y stacks */
+  --color-warmth: #8a4b14; /* tierra quemada */
+  --color-water: #2f4a9c; /* azul terminal: datos y proceso */
   --color-alt: #3a6357; /* salvia: cuarto acento */
 
   /* --- Color semántico: independiente de la marca, existe en ambos modos --- */
   --color-exito: #2c6b3f;
   --color-error: #a52318;
 
-  /* --- Botón primario: invierte el fondo en los dos modos --- */
-  --color-btn: #23300c;
-  --color-btn-fg: #f7f4e6;
+  /*
+   * Botón primario: invierte el fondo en los dos modos y es SIEMPRE el elemento
+   * de mayor contraste de la página. La spec exige un solo CTA y que nada
+   * compita con él visualmente — este par es lo que lo garantiza. 16.6:1.
+   */
+  --color-btn: #1a1815;
+  --color-btn-fg: #faf8f4;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /*
+   * El sabor "terminal" se logra con tipografía, no repintando todo de naranja.
+   * Stack del sistema a propósito: cero descargas, cero impacto en Performance.
+   * Se usa en cifras, proof line, numeradores del proceso y logotipo — nunca en
+   * párrafos largos.
+   */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 }
 
 /*
- * Paleta nocturna, declarada UNA sola vez.
+ * Paleta de terminal, declarada UNA sola vez.
  *
  * Los dos bloques de abajo (el del sistema y el del botón) la *asignan* a los
- * tokens; ninguno repite un valor. Antes los 20 colores estaban copiados byte
- * a byte en ambos, y ya casi muerde: al corregir el contraste hubo que tocar
- * `line-strong` en los dos lados, y olvidarse de uno habría hecho que el tema
- * manual y el del sistema divergieran sin que nada lo avisara.
+ * tokens; ninguno repite un valor. Antes los colores estaban copiados byte a
+ * byte en ambos y ya casi muerde: al corregir un contraste hay que tocar los
+ * dos lados, y olvidarse de uno hace que el tema manual y el del sistema
+ * diverjan sin que nada lo avise.
  */
 :root {
-  --noche-base: #101733;
-  --noche-panel: #1a2656;
-  --noche-warm: #23305e;
-  --noche-fg: #e9e7f4;
-  --noche-muted: #a7adcb;
-  --noche-subtle: #9098bb;
-  --noche-line: #2b3663;
-  --noche-line-strong: #6070ac;
+  --term-base: #0b0b0c;
+  --term-panel: #141416;
+  --term-warm: #1c1a17;
+  --term-fg: #ececed; /* 16.7:1 */
+  --term-muted: #a5a29c; /* 7.7:1 */
+  --term-subtle: #8a857c; /* 5.4:1 */
+  --term-line: #26262a;
+  --term-line-strong: #6b665e; /* 3.5:1 sobre base · 3.2:1 sobre panel */
 
-  --noche-brand-400: #a8e2d9;
-  --noche-brand-500: #8dd5ca;
-  --noche-brand-600: #6dbfb3;
+  /*
+   * Ámbar de fósforo. El acento del modo oscuro y el color de la marca.
+   * Medidos sobre `base` — en oscuro la rampa sobra de contraste y los tres
+   * pasos pasan AA con margen, incluido el badge teñido (10.99:1).
+   */
+  --term-brand-400: #ffc85c; /* 12.8:1 */
+  --term-brand-500: #ffb224; /* 10.9:1 */
+  --term-brand-600: #e8981a; /* 8.4:1 */
 
-  --noche-warmth: #dcaaa8;
-  --noche-water: #8cc0d2;
-  --noche-alt: #c4a3d8;
+  --term-warmth: #e0a06a;
+  --term-water: #7fb3d5;
+  --term-alt: #9fc6a8;
 
-  --noche-exito: #7fd1a0;
-  --noche-error: #ff9d95;
+  --term-exito: #7fd18f;
+  --term-error: #ff8b7d;
 
-  /* El botón primario invierte el fondo: en oscuro es el acento sobre navy. */
-  --noche-btn: var(--noche-brand-500);
-  --noche-btn-fg: #0d1329;
+  /* En oscuro el CTA es el ámbar sobre el negro: el mayor contraste posible. */
+  --term-btn: var(--term-brand-500);
+  --term-btn-fg: #0b0b0c;
 
-  /* Los dos resplandores del cielo de la foto: solo se usan como luz. */
-  --noche-luz-malva: 158, 105, 135;
-  --noche-luz-purpura: 102, 90, 136;
+  /* Resplandor del fósforo. Solo se usa como luz, nunca como fondo de texto. */
+  --term-luz: 255, 178, 36;
 }
 
 /* Preferencia del sistema (sin elección manual explícita). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-base: var(--noche-base);
-    --color-panel: var(--noche-panel);
-    --color-warm: var(--noche-warm);
-    --color-fg: var(--noche-fg);
-    --color-muted: var(--noche-muted);
-    --color-subtle: var(--noche-subtle);
-    --color-line: var(--noche-line);
-    --color-line-strong: var(--noche-line-strong);
+    --color-base: var(--term-base);
+    --color-panel: var(--term-panel);
+    --color-warm: var(--term-warm);
+    --color-fg: var(--term-fg);
+    --color-muted: var(--term-muted);
+    --color-subtle: var(--term-subtle);
+    --color-line: var(--term-line);
+    --color-line-strong: var(--term-line-strong);
 
-    --color-brand-400: var(--noche-brand-400);
-    --color-brand-500: var(--noche-brand-500);
-    --color-brand-600: var(--noche-brand-600);
+    --color-brand-400: var(--term-brand-400);
+    --color-brand-500: var(--term-brand-500);
+    --color-brand-600: var(--term-brand-600);
 
-    --color-warmth: var(--noche-warmth);
-    --color-water: var(--noche-water);
-    --color-alt: var(--noche-alt);
+    --color-warmth: var(--term-warmth);
+    --color-water: var(--term-water);
+    --color-alt: var(--term-alt);
 
-    --color-exito: var(--noche-exito);
-    --color-error: var(--noche-error);
+    --color-exito: var(--term-exito);
+    --color-error: var(--term-error);
 
-    --color-btn: var(--noche-btn);
-    --color-btn-fg: var(--noche-btn-fg);
-}
+    --color-btn: var(--term-btn);
+    --color-btn-fg: var(--term-btn-fg);
+  }
 }
 
 /* Elección manual del botón del nav. Gana siempre sobre el sistema. */
 :root[data-theme="dark"] {
-  --color-base: var(--noche-base);
-  --color-panel: var(--noche-panel);
-  --color-warm: var(--noche-warm);
-  --color-fg: var(--noche-fg);
-  --color-muted: var(--noche-muted);
-  --color-subtle: var(--noche-subtle);
-  --color-line: var(--noche-line);
-  --color-line-strong: var(--noche-line-strong);
+  --color-base: var(--term-base);
+  --color-panel: var(--term-panel);
+  --color-warm: var(--term-warm);
+  --color-fg: var(--term-fg);
+  --color-muted: var(--term-muted);
+  --color-subtle: var(--term-subtle);
+  --color-line: var(--term-line);
+  --color-line-strong: var(--term-line-strong);
 
-  --color-brand-400: var(--noche-brand-400);
-  --color-brand-500: var(--noche-brand-500);
-  --color-brand-600: var(--noche-brand-600);
+  --color-brand-400: var(--term-brand-400);
+  --color-brand-500: var(--term-brand-500);
+  --color-brand-600: var(--term-brand-600);
 
-  --color-warmth: var(--noche-warmth);
-  --color-water: var(--noche-water);
-  --color-alt: var(--noche-alt);
+  --color-warmth: var(--term-warmth);
+  --color-water: var(--term-water);
+  --color-alt: var(--term-alt);
 
-  --color-exito: var(--noche-exito);
-  --color-error: var(--noche-error);
+  --color-exito: var(--term-exito);
+  --color-error: var(--term-error);
 
-  --color-btn: var(--noche-btn);
-  --color-btn-fg: var(--noche-btn-fg);
+  --color-btn: var(--term-btn);
+  --color-btn-fg: var(--term-btn-fg);
 }
 
 /*
- * `color-scheme` no es decorativo: le dice al navegador de qué color pintar
- * las barras de scroll, el autocompletado y los controles nativos. Sin esto,
- * en modo oscuro el autofill de Chrome rellena los campos con fondo blanco.
+ * `color-scheme` no es decorativo: le dice al navegador de qué color pintar las
+ * barras de scroll, el autocompletado y los controles nativos. Sin esto, en modo
+ * oscuro el autofill de Chrome rellena los campos con fondo blanco.
  */
 :root {
   color-scheme: light;
@@ -172,43 +211,52 @@ body {
 }
 
 /*
- * Fondo degradado de la sección "Diferencial". En claro es un lavado de
- * pasto y crema; en oscuro son los dos resplandores del cielo de la foto
- * —púrpura y malva—, que es lo que le da carácter al modo nocturno.
+ * Scroll suave: todos los CTA de la página son anclas a `#contacto`. La guarda
+ * de `prefers-reduced-motion` del final lo desactiva para quien lo pidió.
+ */
+html {
+  scroll-behavior: smooth;
+}
+
+/*
+ * Resplandor de fósforo detrás del bloque destacado. En claro es un lavado
+ * cálido de papel; en oscuro es la luz del ámbar sobre el negro, que es lo que
+ * le da carácter al modo terminal.
  */
 .gradient-border {
   background: linear-gradient(
     135deg,
-    rgba(79, 107, 28, 0.07),
-    rgba(154, 95, 22, 0.06)
+    rgba(154, 91, 0, 0.06),
+    rgba(138, 75, 20, 0.05)
   );
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .gradient-border {
     background:
-      radial-gradient(90% 70% at 85% 0%, rgba(var(--noche-luz-malva), 0.28), transparent 62%),
-      radial-gradient(80% 60% at 8% 10%, rgba(var(--noche-luz-purpura), 0.3), transparent 58%);
+      radial-gradient(90% 70% at 85% 0%, rgba(var(--term-luz), 0.14), transparent 62%),
+      radial-gradient(80% 60% at 8% 10%, rgba(var(--term-luz), 0.08), transparent 58%);
   }
 }
 :root[data-theme="dark"] .gradient-border {
   background:
-    radial-gradient(90% 70% at 85% 0%, rgba(var(--noche-luz-malva), 0.28), transparent 62%),
-    radial-gradient(80% 60% at 8% 10%, rgba(var(--noche-luz-purpura), 0.3), transparent 58%);
+    radial-gradient(90% 70% at 85% 0%, rgba(var(--term-luz), 0.14), transparent 62%),
+    radial-gradient(80% 60% at 8% 10%, rgba(var(--term-luz), 0.08), transparent 58%);
 }
 
 /*
- * Degradado del titular del hero. Escrito con tokens, así que no necesita una
- * variante por tema: en claro sale pasto → tierra → salvia y en oscuro
- * menta → rosa → lila, porque los tokens ya cambian. Antes había dos reglas
- * duplicadas y el lila era un `#b98ec4` suelto que no correspondía a ningún
- * token — parecía `--color-alt` sin serlo.
+ * Degradado del titular. Escrito con tokens, así que no necesita una variante
+ * por tema: los tokens ya cambian con el modo.
+ *
+ * OJO (a11y): `background-clip: text` deja el texto sin color propio. Se usa
+ * solo en tramos cortos del titular, nunca en un párrafo, y nunca como único
+ * medio de transmitir información.
  */
 .text-gradient {
   background: linear-gradient(
     135deg,
     var(--color-brand-500),
-    var(--color-warmth) 55%,
-    var(--color-alt)
+    var(--color-warmth) 60%,
+    var(--color-brand-600)
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -218,10 +266,10 @@ body {
 
 /*
  * Iconos del botón de tema. Se resuelven en CSS y no con estado de React a
- * propósito: el servidor no sabe qué tema tiene la persona, así que
- * renderizar el ícono desde JavaScript provocaría un desajuste de hidratación
- * o un parpadeo. Con estas reglas el HTML trae los dos y el navegador
- * muestra el que corresponde ya en el primer pintado.
+ * propósito: el servidor no sabe qué tema tiene la persona, así que renderizar
+ * el ícono desde JavaScript provocaría un desajuste de hidratación o un
+ * parpadeo. Con estas reglas el HTML trae los dos y el navegador muestra el que
+ * corresponde ya en el primer pintado.
  */
 .solo-claro {
   display: inline-flex;
@@ -251,9 +299,9 @@ body {
 }
 
 /*
- * El nav es `fixed`: sin este margen, al saltar por un ancla el título de la
- * sección queda tapado por la barra — y quien navega por teclado pierde de
- * vista el destino del foco.
+ * El nav es sticky: sin este margen, al saltar por un ancla el título de la
+ * sección queda tapado por la barra — y quien navega por teclado pierde de vista
+ * el destino del foco.
  */
 [id] {
   scroll-margin-top: 5rem;
@@ -274,5 +322,8 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }

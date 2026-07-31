@@ -4,10 +4,14 @@ import { z } from "zod";
  * Contrato de leads — fuente de verdad única de validación (cliente y servidor).
  *
  * Diseñado para que la Fase 2 (agente de assessment) se cuelgue sin rediseñar
- * nada: `tipo` es el discriminante. Hoy solo existe `"contacto"`; cuando llegue
- * la Fase 2 se agrega un `leadAssessmentSchema` con las 8 preguntas del brief y
- * se suma a `leadSchema` como variante de la unión discriminada. El endpoint
- * `/api/contacto` ya normaliza y valida contra este contrato.
+ * nada: `tipo` es el discriminante. Hoy solo existe `"contacto"`; la Fase 2
+ * agrega `leadAssessmentSchema` como segunda variante de `leadSchema` y una
+ * segunda rama en `normalizarLead()`. El endpoint no se toca.
+ *
+ * El formulario de la landing es un **micro-cualificador de 4 campos**: su
+ * trabajo es que alguien agende, no levantar requisitos. El formulario largo
+ * (texto libre que alimenta el prompt del agente) es el de `/assessment`, y es
+ * otro formulario con otro esquema — no una versión extendida de este.
  */
 
 /**
@@ -18,11 +22,69 @@ import { z } from "zod";
 z.config(z.locales.es());
 
 /**
- * Sin saltos de línea ni nulos. `nombre` y `empresa` terminan en el asunto del
- * email: un `\r\n` ahí es un intento de inyección de headers SMTP. `.trim()`
- * solo limpia los bordes, así que el corte tiene que ser explícito.
+ * Sin saltos de línea ni nulos. `nombre` termina en el asunto del email: un
+ * `\r\n` ahí es un intento de inyección de headers SMTP. `.trim()` solo limpia
+ * los bordes, así que el corte tiene que ser explícito.
  */
 const SIN_CARACTERES_DE_CONTROL = /^[^\r\n\x00]*$/;
+
+/**
+ * Rol de quien consulta. Es un enum y no texto libre a propósito: cada campo
+ * cerrado es una superficie menos de abuso y un dato más fácil de leer de un
+ * vistazo en la bandeja.
+ *
+ * El `value` es el dato que viaja; el `label` es lo que se ve. Los dos viven
+ * acá para que el formulario y el email muestren exactamente lo mismo — si el
+ * label viviera en el componente, el email diría `gerente-ti` y nadie lo
+ * arreglaría hasta que Daniela preguntara qué significa.
+ */
+export const ROLES = [
+  { value: "cto", label: "CTO" },
+  { value: "gerente-ti", label: "Gerente de TI" },
+  { value: "data-lead", label: "Data Lead" },
+  { value: "arquitecto", label: "Arquitecto" },
+  { value: "finops", label: "FinOps" },
+  { value: "otro", label: "Otro" },
+] as const;
+
+export type RolLead = (typeof ROLES)[number]["value"];
+
+/** Los cuatro dolores de la sección "¿Te suena?", en el mismo orden. */
+export const DESAFIOS = [
+  {
+    value: "costos-cloud",
+    label: "Costos cloud creciendo sin visibilidad",
+  },
+  {
+    value: "reportes-manuales",
+    label: "Reportes manuales que toman horas",
+  },
+  {
+    value: "dependencia-persona",
+    label: "Procesos críticos que dependen de una persona",
+  },
+  {
+    value: "modernizar-arquitectura",
+    label: "Necesidad de modernizar la arquitectura de datos",
+  },
+] as const;
+
+export type DesafioLead = (typeof DESAFIOS)[number]["value"];
+
+/** Devuelve el texto visible de un valor del enum. Lo usan la UI y el email. */
+export function etiquetaRol(valor: RolLead): string {
+  return ROLES.find((r) => r.value === valor)?.label ?? valor;
+}
+
+export function etiquetaDesafio(valor: DesafioLead): string {
+  return DESAFIOS.find((d) => d.value === valor)?.label ?? valor;
+}
+
+const valoresRoles = ROLES.map((r) => r.value) as [RolLead, ...RolLead[]];
+const valoresDesafios = DESAFIOS.map((d) => d.value) as [
+  DesafioLead,
+  ...DesafioLead[],
+];
 
 /** Campos comunes a cualquier lead, sea de contacto o de assessment. */
 const leadBaseFields = {
@@ -37,16 +99,6 @@ const leadBaseFields = {
     .trim()
     .toLowerCase()
     .pipe(z.email("Ingresa un email válido.")),
-  // `.optional()` ya acepta el string vacío que manda el formulario cuando el
-  // campo queda en blanco. Un `.or(z.literal(""))` extra convertiría esto en
-  // una unión, y zod reportaría el error genérico de unión en vez del mensaje
-  // de abajo.
-  empresa: z
-    .string()
-    .trim()
-    .max(100, "El nombre de la empresa es demasiado largo.")
-    .regex(SIN_CARACTERES_DE_CONTROL, "La empresa tiene caracteres no válidos.")
-    .optional(),
 };
 
 /** Trampa anti-spam: campo oculto para humanos, visible para bots. */
@@ -64,21 +116,26 @@ export const honeypotField = "website" as const;
  */
 const honeypotSchema = z.unknown().optional();
 
-/** Lead del formulario de contacto (Fase 1). */
+/**
+ * Lead del formulario de la landing. Cuatro campos, todos obligatorios.
+ *
+ * `tipo` NO lleva `.default()`: un discriminante con default dentro de una
+ * `z.discriminatedUnion` es terreno resbaloso, y la Fase 2 convierte esto en
+ * unión. Se saca ahora, con una sola variante, para que la fase siguiente no
+ * herede el problema. A cambio, **los formularios tienen que mandar `tipo`
+ * explícito en sus `defaultValues`**.
+ */
 export const leadContactoSchema = z.object({
-  tipo: z.literal("contacto").default("contacto"),
+  tipo: z.literal("contacto"),
   ...leadBaseFields,
-  mensaje: z
-    .string()
-    .trim()
-    .min(10, "Cuéntame un poco más — al menos 10 caracteres.")
-    .max(2000, "El mensaje es demasiado largo (máx. 2000 caracteres)."),
+  rol: z.enum(valoresRoles, { message: "Selecciona tu rol." }),
+  desafio: z.enum(valoresDesafios, { message: "Selecciona tu principal desafío." }),
   [honeypotField]: honeypotSchema,
 });
 
 /**
  * Unión de todos los tipos de lead. Hoy tiene una sola variante; la Fase 2
- * agregará `leadAssessmentSchema` acá como `z.discriminatedUnion("tipo", [...])`.
+ * agrega `leadAssessmentSchema` acá como `z.discriminatedUnion("tipo", [...])`.
  */
 export const leadSchema = leadContactoSchema;
 
@@ -87,18 +144,25 @@ export type LeadContactoInput = z.input<typeof leadContactoSchema>;
 export type LeadContacto = z.output<typeof leadContactoSchema>;
 
 /**
- * Lead ya normalizado y listo para persistir o notificar. Es lo que consumen
- * el envío de email (Fase 1) y, más adelante, el agente de assessment (Fase 2).
+ * Lead ya normalizado y listo para notificar. Es lo que consumen el envío de
+ * email (Fase 1) y, más adelante, el agente de assessment (Fase 2).
+ *
+ * Es un `type` y no una `interface` porque la Fase 2 lo vuelve una unión
+ * discriminada (`LeadContactoNormalizado | LeadAssessmentNormalizado`). Con el
+ * `switch` exhaustivo sobre `tipo` en `procesarLead()`, agregar una variante sin
+ * manejarla rompe el build — que es exactamente lo que queremos.
  */
-export interface Lead {
+export interface LeadContactoNormalizado {
   tipo: "contacto";
   nombre: string;
   email: string;
-  empresa?: string;
-  mensaje: string;
+  rol: RolLead;
+  desafio: DesafioLead;
   /** Momento de recepción en el servidor, ISO 8601. */
   recibidoEn: string;
 }
+
+export type Lead = LeadContactoNormalizado;
 
 /** Descarta el honeypot y estampa la marca de tiempo del servidor. */
 export function normalizarLead(datos: LeadContacto, recibidoEn: Date): Lead {
@@ -106,10 +170,40 @@ export function normalizarLead(datos: LeadContacto, recibidoEn: Date): Lead {
     tipo: "contacto",
     nombre: datos.nombre,
     email: datos.email,
-    empresa: datos.empresa ? datos.empresa : undefined,
-    mensaje: datos.mensaje,
+    rol: datos.rol,
+    desafio: datos.desafio,
     recibidoEn: recibidoEn.toISOString(),
   };
+}
+
+/**
+ * Dominios de correo gratuito. **No se usa para validar**: bloquear un `@gmail`
+ * perdería clientes reales (en Chile una PYME mediana escribe desde Gmail) y el
+ * email de contacto de la propia consultora es uno. Se usa solo para mostrar una
+ * sugerencia en gris en el formulario, sin marcar el campo como inválido ni
+ * impedir el envío.
+ *
+ * Vive acá y no en el componente porque el email a la casilla también la usa,
+ * para anotar "correo personal" al costado del dato.
+ */
+export const DOMINIOS_PERSONALES = [
+  "gmail.com",
+  "hotmail.com",
+  "hotmail.cl",
+  "outlook.com",
+  "outlook.cl",
+  "live.cl",
+  "yahoo.com",
+  "yahoo.es",
+  "icloud.com",
+  "proton.me",
+  "protonmail.com",
+] as const;
+
+export function esCorreoPersonal(email: string): boolean {
+  const dominio = email.trim().toLowerCase().split("@")[1];
+  if (!dominio) return false;
+  return (DOMINIOS_PERSONALES as readonly string[]).includes(dominio);
 }
 
 /** Respuesta que el endpoint devuelve al formulario. */

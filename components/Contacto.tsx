@@ -1,75 +1,36 @@
 import ContactoForm from "@/components/ContactoForm";
-import { site } from "@/content/site";
+import { contacto } from "@/content/contacto";
 
 /**
- * Sección "Contacto": el objetivo del sitio entero. Reemplaza el `mailto:`
- * suelto de la maqueta por un formulario real, conservando el lenguaje visual.
+ * Sección "Contacto": el destino de todos los CTA de la página y su único
+ * objetivo real.
  *
  * Server Component: solo el formulario (interactivo) es cliente.
+ *
+ * Acá NO hay ni botón de Calendly ni links a redes, a diferencia de la versión
+ * anterior. Son dos decisiones de la spec:
+ *   - §5: un solo CTA. Un botón "Agendar" al lado del formulario compite con el
+ *     submit y deja a la persona eligiendo entre dos caminos en el momento en
+ *     que menos hay que hacerla pensar.
+ *   - §8: la agenda aparece DESPUÉS de enviar, dentro del estado de éxito del
+ *     formulario, cuando el lead ya está capturado. Si Calendly estuviera
+ *     antes, quien agenda y no envía no deja ningún dato.
+ *
+ * El `id` lo usan los CTA del nav, el hero y el caso real. `scroll-margin-top`
+ * ya está resuelto en `globals.css` para que el nav sticky no tape el titular.
  */
 export default function Contacto() {
-  const tieneCalendly = site.calendly.trim() !== "";
-
   return (
     <section id="contacto" className="py-24 px-6 border-t border-line">
-      <div className="max-w-6xl mx-auto">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">¿Tienes datos sin explotar?</h2>
-          <p className="text-muted mb-10">
-            30 minutos para entender tu contexto y ver si podemos ayudar. Sin
-            compromiso.
-          </p>
-
-          <ContactoForm />
-
-          <div className="mt-10">
-            <p className="text-sm text-muted mb-4">
-              {tieneCalendly
-                ? "¿Prefieres hablarlo en vivo?"
-                : "¿Prefieres escribirnos directo?"}
-            </p>
-
-            {tieneCalendly ? (
-              <a
-                href={site.calendly}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-btn text-btn-fg px-8 py-4 rounded-lg font-medium hover:opacity-90 transition text-lg"
-              >
-                Agendar 30 min →
-                <span className="sr-only"> (abre en una pestaña nueva)</span>
-              </a>
-            ) : (
-              <a
-                href={`mailto:${site.email}`}
-                className="inline-block bg-btn text-btn-fg px-8 py-4 rounded-lg font-medium hover:opacity-90 transition text-lg"
-              >
-                {site.email}
-              </a>
-            )}
-          </div>
-
-          <div className="flex justify-center gap-6 mt-8">
-            <a
-              href={site.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted hover:text-fg transition"
-            >
-              LinkedIn
-              <span className="sr-only"> (abre en una pestaña nueva)</span>
-            </a>
-            <a
-              href={site.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted hover:text-fg transition"
-            >
-              GitHub
-              <span className="sr-only"> (abre en una pestaña nueva)</span>
-            </a>
-          </div>
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-fg mb-4">
+            {contacto.titulo}
+          </h2>
+          <p className="text-muted">{contacto.bajada}</p>
         </div>
+
+        <ContactoForm />
       </div>
     </section>
   );

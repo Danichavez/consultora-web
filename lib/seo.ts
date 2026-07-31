@@ -23,7 +23,9 @@ const ciudad = site.ciudad.split(",")[0].trim();
  * casi por completo) pero sí las leen otros crawlers y agregadores.
  */
 export const keywords = [
+  "ArqData",
   "arquitectura de datos",
+  "automatización de procesos de datos",
   "data architect Chile",
   "consultoría de datos",
   "AWS",
@@ -45,12 +47,19 @@ export const keywords = [
  * Metadata raíz. `app/layout.tsx` la re-exporta sin modificarla.
  *
  * Notas:
- * - `metadataBase` viene de `siteUrl` (env var `NEXT_PUBLIC_SITE_URL`): el
- *   dominio definitivo todavía no está decidido, nada se hardcodea acá.
- * - `openGraph.images` / `twitter.images` se omiten a propósito: los llena
- *   automáticamente la convención de archivo `app/opengraph-image.tsx`.
- * - `title.template` queda listo para las páginas futuras del blog, que solo
- *   tendrán que exportar `title: "Mi post"`.
+ * - `title` y `description` salen de `content/site.ts`, nunca se escriben acá:
+ *   el cambio de marca a "ArqData" se propagó solo por eso.
+ * - `metadataBase` viene de `siteUrl` (env var `NEXT_PUBLIC_SITE_URL`), que
+ *   tiene que ser el dominio que Vercel sirve **sin redirigir** (hoy el apex;
+ *   `www` va con 308 hacia él). De ahí salen canonical, `og:url`, el sitemap y
+ *   robots: si apunta a un dominio que redirige, el 100% de las canónicas que
+ *   publicamos son un 308. `arqdata.cl` todavía no está comprado — cuando lo
+ *   esté, se cambia la env var, no este archivo.
+ * - `openGraph.images` / `twitter.images` se omiten **a propósito**: los llena
+ *   la convención de archivo `app/opengraph-image.tsx`. Definirlos a mano acá
+ *   pisa la imagen generada.
+ * - `title.template` aplica a las páginas hijas (hoy `/thank-you`), que solo
+ *   tienen que exportar su `title`.
  */
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -96,24 +105,44 @@ export const metadata: Metadata = {
 
 /**
  * Structured data (schema.org) en un `@graph` con tres nodos enlazados por
- * `@id`: la persona, el servicio profesional y el sitio. Google entiende
+ * `@id`: la organización, el servicio profesional y el sitio. Google entiende
  * mejor un grafo con referencias que tres bloques sueltos y duplicados.
  *
+ * ⚠️ El nodo raíz es `Organization`, no `Person` (decisión de marca 2026-07-31).
+ * Es la contrapartida obligatoria de que la marca visible pasara de "Daniela
+ * Chávez" a "ArqData": un `Person` que se llama "ArqData" es structured data
+ * incorrecto — declara que una consultora es un ser humano, y arrastra
+ * propiedades que no le corresponden (`jobTitle`, `knowsAbout` de persona).
+ * Si algún día vuelve a haber una persona nombrada en el sitio, se agrega un
+ * nodo `Person` aparte enlazado por `founder`, no se revierte éste.
+ *
  * El catálogo de ofertas se genera desde `content/servicios.ts`: agregar un
- * servicio ahí lo agrega también acá, sin tocar este archivo.
+ * servicio ahí lo agrega también acá, sin tocar este archivo. **Ese archivo no
+ * se borra aunque la página ya no muestre los servicios** — este `OfferCatalog`
+ * y toda la Fase 2 se derivan de él.
  */
 export const jsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Person",
-      "@id": `${siteUrl}/#persona`,
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organizacion`,
       name: site.nombre,
-      jobTitle: site.rol,
+      /*
+       * Sin `legalName`: "ArqData" es la marca, no la razón social, y todavía no
+       * sabemos cuál es la entidad legal. Declarar una que no existe es peor que
+       * omitir la propiedad.
+       */
       description: site.descripcionCorta,
       email: `mailto:${site.email}`,
-      url: `${siteUrl}/`,
+      url: siteUrl,
       image: `${siteUrl}/opengraph-image`,
+      /**
+       * Único raster que sirve el sitio (la OG se genera por código y `public/`
+       * está vacío). No es un isotipo, pero contiene el logotipo y es válido;
+       * un SVG acá no sirve, Google pide raster para `logo`.
+       */
+      logo: `${siteUrl}/opengraph-image`,
       address: {
         "@type": "PostalAddress",
         addressLocality: ciudad,
@@ -130,9 +159,17 @@ export const jsonLd: Record<string, unknown> = {
       url: `${siteUrl}/`,
       email: `mailto:${site.email}`,
       image: `${siteUrl}/opengraph-image`,
-      priceRange: "$$$",
-      founder: { "@id": `${siteUrl}/#persona` },
-      provider: { "@id": `${siteUrl}/#persona` },
+      /*
+       * Sin `priceRange`. Sobrevivió a la purga de precios del 2026-07-27
+       * —que sacó `priceSpecification` del `OfferCatalog`— porque `"$$$"` no es
+       * una cifra, pero es exactamente la misma clase de dato: una señal de
+       * precio en structured data público, que Google puede mostrar en
+       * resultados enriquecidos. La decisión comercial es que el monto se
+       * conversa en la llamada, y eso no distingue entre un número y tres
+       * signos peso. Reponerlo es una línea, si alguna vez se decide al revés.
+       */
+      parentOrganization: { "@id": `${siteUrl}/#organizacion` },
+      provider: { "@id": `${siteUrl}/#organizacion` },
       availableLanguage: ["es", "en"],
       address: {
         "@type": "PostalAddress",
@@ -177,7 +214,7 @@ export const jsonLd: Record<string, unknown> = {
       name: site.titulo,
       description: site.descripcion,
       inLanguage: site.lang,
-      publisher: { "@id": `${siteUrl}/#persona` },
+      publisher: { "@id": `${siteUrl}/#organizacion` },
     },
   ],
 };

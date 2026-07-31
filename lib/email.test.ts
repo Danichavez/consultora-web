@@ -13,8 +13,8 @@ function lead(cambios: Partial<Lead> = {}): Lead {
     tipo: "contacto",
     nombre: "Ana Pérez",
     email: "ana@acme.cl",
-    empresa: "Acme",
-    mensaje: "Tenemos datos en S3.",
+    rol: "gerente-ti",
+    desafio: "costos-cloud",
     recibidoEn: "2026-07-27T15:30:00.000Z",
     ...cambios,
   };
@@ -22,12 +22,8 @@ function lead(cambios: Partial<Lead> = {}): Lead {
 
 describe("asuntoLead", () => {
   it("arma un asunto escaneable de un vistazo", () => {
-    expect(asuntoLead(lead())).toBe("Nuevo lead: Ana Pérez (Acme)");
-  });
-
-  it("dice 'sin empresa' cuando no viene", () => {
-    expect(asuntoLead(lead({ empresa: undefined }))).toBe(
-      "Nuevo lead: Ana Pérez (sin empresa)",
+    expect(asuntoLead(lead())).toBe(
+      "Nuevo lead: Ana Pérez — Costos cloud creciendo sin visibilidad",
     );
   });
 
@@ -38,35 +34,30 @@ describe("asuntoLead", () => {
    * `subject` tal cual al API: no sanitiza nada.
    */
   it("aplasta saltos de línea y nulos en una sola línea", () => {
-    const asunto = asuntoLead(
-      lead({ nombre: "Ana\r\nBcc: victima@ejemplo.cl", empresa: "Acme\x00" }),
-    );
+    const asunto = asuntoLead(lead({ nombre: "Ana\r\nBcc: victima@ejemplo.cl\x00" }));
     expect(asunto).not.toMatch(/[\r\n\x00]/);
   });
 });
 
 describe("cuerpoHtmlLead — escapado", () => {
-  it("escapa el HTML del mensaje", () => {
-    const html = cuerpoHtmlLead(
-      lead({ mensaje: "<script>alert('x')</script>" }),
-    );
+  it("escapa el HTML del nombre", () => {
+    const html = cuerpoHtmlLead(lead({ nombre: "<script>alert('x')</script>" }));
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
   });
 
-  it("escapa el HTML del nombre y de la empresa", () => {
-    const html = cuerpoHtmlLead(
-      lead({ nombre: "<b>Ana</b>", empresa: '"><img src=x>' }),
-    );
-    expect(html).not.toContain("<b>Ana</b>");
-    expect(html).not.toContain("<img src=x>");
-  });
-
   it("escapa comillas y ampersands", () => {
-    const html = cuerpoHtmlLead(lead({ mensaje: `a & b "c" 'd'` }));
+    const html = cuerpoHtmlLead(lead({ nombre: `a & b "c" 'd'` }));
     expect(html).toContain("&amp;");
     expect(html).toContain("&quot;");
     expect(html).toContain("&#39;");
+  });
+
+  it("muestra las etiquetas del rol y del desafío, no los slugs", () => {
+    const html = cuerpoHtmlLead(lead());
+    expect(html).toContain("Gerente de TI");
+    expect(html).not.toContain("gerente-ti");
+    expect(html).not.toContain("costos-cloud");
   });
 });
 
@@ -75,12 +66,22 @@ describe("cuerpoTextoLead", () => {
     const texto = cuerpoTextoLead(lead());
     expect(texto).toContain("Ana Pérez");
     expect(texto).toContain("ana@acme.cl");
-    expect(texto).toContain("Acme");
-    expect(texto).toContain("Tenemos datos en S3.");
+    expect(texto).toContain("Gerente de TI");
+    expect(texto).toContain("Costos cloud creciendo sin visibilidad");
   });
 
-  it("marca la empresa ausente con un guion", () => {
-    expect(cuerpoTextoLead(lead({ empresa: undefined }))).toContain("Empresa:  —");
+  /**
+   * La nota es informativa y no bloquea nada: el formulario acepta `@gmail` a
+   * propósito (el correo de la propia consultora es uno). Sirve para priorizar.
+   */
+  it("anota el correo personal al costado del email", () => {
+    expect(cuerpoTextoLead(lead({ email: "ana@gmail.com" }))).toContain(
+      "ana@gmail.com (correo personal)",
+    );
+  });
+
+  it("no anota nada cuando el correo es corporativo", () => {
+    expect(cuerpoTextoLead(lead())).not.toContain("correo personal");
   });
 
   it("no revienta con una fecha inválida", () => {

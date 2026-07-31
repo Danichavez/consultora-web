@@ -1,21 +1,26 @@
 /**
- * Textos del hero — lo primero que lee un visitante y la copy que más se
- * ajusta con el tiempo. Por eso vive acá y no dentro del componente.
+ * Textos del hero — lo primero que lee un visitante y la copy que más se ajusta
+ * con el tiempo. Por eso vive acá y no dentro del componente.
  *
- * `tituloDestacado` se renderiza en una segunda línea con el degradado
- * indigo→emerald; `titulo` va arriba, en blanco.
+ * `tituloDestacado` se renderiza en una segunda línea con `.text-gradient`;
+ * `titulo` va arriba, en `text-fg`.
+ *
+ * Voz plural, sin lenguaje corporativo abstracto y sin nombres propios: son las
+ * tres reglas de copy de la spec del rediseño.
  */
 
 export const hero = {
-  disponibilidad: "Disponible para nuevos proyectos",
-  titulo: "Arquitectura de datos",
-  tituloDestacado: "que produce resultados.",
+  titulo: "Eliminamos los procesos manuales de datos",
+  tituloDestacado: "que le cuestan a tu empresa +1.000 horas al año.",
   bajada:
-    "Diseñamos plataformas de datos en AWS para empresas medianas en Chile. Pipelines automatizados, governance, BI y agentes IA — implementados en tu cuenta, con código reproducible.",
-  ctaPrincipal: "Agendar llamada gratuita",
+    "Diagnóstico en 2 semanas. Implementación en tu cuenta AWS. Sin dependencia, sin licencias de terceros, sin sorpresas.",
   /**
-   * Apuntaba al caso de estudio, que se quitó del sitio (2026-07-27). Ahora
-   * lleva al portafolio (`#trabajo`), que pasó a ser la prueba principal.
+   * Línea de credenciales bajo el CTA. Se renderiza en `--font-mono` y en
+   * `text-subtle`: es prueba, no titular.
    */
-  ctaSecundario: "Ver proyectos",
+  proof: [
+    "AWS Certified",
+    "Producción en industria regulada",
+    "Resultados en semanas, no meses",
+  ],
 } as const;

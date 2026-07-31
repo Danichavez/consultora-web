@@ -1,19 +1,39 @@
 /**
- * Los 5 pasos del proceso de trabajo (catalogo_servicios.md → "Cómo trabajo").
+ * Cómo funciona — tres pasos.
+ *
+ * Pasó de 5 pasos a 3 en el rediseño (2026-07-31): los pasos 4 y 5 (entrega y
+ * soporte) describían el después de la venta y le restaban peso al único
+ * objetivo de la página, que es que alguien agende la conversación.
+ *
+ * `numero` es string (`"01"`) y no number a propósito: se renderiza en
+ * `--font-mono` con el cero a la izquierda, y es el detalle que sostiene el
+ * carácter "terminal" del tema sin repintar nada de ámbar.
  */
 
 export interface Paso {
-  numero: number;
+  numero: string;
   titulo: string;
-  detalle: string;
-  /** El último paso lleva otro acento para cerrar visualmente la secuencia. */
-  acento: "marca" | "alterno";
+  descripcion: string;
 }
 
+export const tituloProceso = "Cómo funciona";
+
 export const proceso: Paso[] = [
-  { numero: 1, titulo: "Discovery", detalle: "30 min · Gratis", acento: "marca" },
-  { numero: 2, titulo: "Propuesta", detalle: "En 48 horas", acento: "marca" },
-  { numero: 3, titulo: "Implementación", detalle: "En tu cuenta AWS", acento: "marca" },
-  { numero: 4, titulo: "Entrega", detalle: "Código + docs + training", acento: "marca" },
-  { numero: 5, titulo: "Soporte", detalle: "30 días incluidos", acento: "alterno" },
+  {
+    numero: "01",
+    titulo: "Conversación",
+    descripcion:
+      "30 minutos para entender tu dolor. Gratis, sin presentaciones de 40 páginas. Sin compromiso.",
+  },
+  {
+    numero: "02",
+    titulo: "Propuesta en 48h",
+    descripcion: "Alcance, timeline y precio claro. Sin letra chica.",
+  },
+  {
+    numero: "03",
+    titulo: "Implementación en tu cuenta",
+    descripcion:
+      "Código tuyo, infraestructura tuya. Si no nos necesitas más, sigues operando.",
+  },
 ];

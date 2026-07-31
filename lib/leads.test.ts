@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  esCorreoPersonal,
+  etiquetaDesafio,
+  etiquetaRol,
   honeypotField,
   leadContactoSchema,
   normalizarLead,
@@ -10,9 +13,11 @@ import {
 /** Payload válido mínimo; cada test cambia solo lo que le interesa. */
 function lead(cambios: Record<string, unknown> = {}) {
   return {
+    tipo: "contacto",
     nombre: "Ana Pérez",
     email: "ana@acme.cl",
-    mensaje: "Tenemos datos en S3 y nadie confía en los números.",
+    rol: "gerente-ti",
+    desafio: "costos-cloud",
     ...cambios,
   };
 }
@@ -47,12 +52,11 @@ describe("leadContactoSchema — el honeypot", () => {
 
 describe("leadContactoSchema — inyección de headers", () => {
   /**
-   * `nombre` y `empresa` se interpolan en el asunto del email: un `\r\n` ahí es
-   * inyección de headers SMTP. `.trim()` solo limpia los bordes.
+   * `nombre` se interpola en el asunto del email: un `\r\n` ahí es inyección de
+   * headers SMTP. `.trim()` solo limpia los bordes.
    */
   it.each([
     ["salto de línea en el nombre", { nombre: "Ana\r\nBcc: victima@ejemplo.cl" }],
-    ["salto de línea en la empresa", { empresa: "Acme\nBcc: victima@ejemplo.cl" }],
     ["byte nulo en el nombre", { nombre: "Ana\x00Pérez" }],
   ])("rechaza %s", (_caso, cambios) => {
     expect(leadContactoSchema.safeParse(lead(cambios)).success).toBe(false);
@@ -72,25 +76,38 @@ describe("leadContactoSchema — campos", () => {
     expect(resultado.success && resultado.data.email).toBe("ana@acme.cl");
   });
 
-  it("acepta empresa vacía sin convertir el esquema en unión", () => {
-    // Un `.or(z.literal(""))` extra haría que zod reporte el error genérico de
-    // unión en vez del mensaje propio del campo.
-    const resultado = leadContactoSchema.safeParse(lead({ empresa: "" }));
-    expect(resultado.success).toBe(true);
-  });
-
-  it("pone tipo 'contacto' por defecto cuando no viene", () => {
-    const resultado = leadContactoSchema.safeParse(lead());
-    expect(resultado.success && resultado.data.tipo).toBe("contacto");
-  });
-
-  it("rechaza un mensaje de 9 caracteres y acepta uno de 10", () => {
-    expect(leadContactoSchema.safeParse(lead({ mensaje: "123456789" })).success).toBe(false);
-    expect(leadContactoSchema.safeParse(lead({ mensaje: "1234567890" })).success).toBe(true);
-  });
-
   it("rechaza un nombre de 1 carácter", () => {
     expect(leadContactoSchema.safeParse(lead({ nombre: "A" })).success).toBe(false);
+  });
+
+  /**
+   * `tipo` NO tiene `.default()`: un discriminante con default dentro de una
+   * `z.discriminatedUnion` es terreno resbaloso y la Fase 2 convierte esto en
+   * unión. La contrapartida es que el formulario **tiene** que mandarlo en sus
+   * `defaultValues`; este test documenta ese contrato para que nadie lo
+   * descubra con un 400 en producción.
+   */
+  it("rechaza un payload sin `tipo` (el discriminante no tiene default)", () => {
+    const sinTipo: Record<string, unknown> = lead();
+    delete sinTipo.tipo;
+    expect(leadContactoSchema.safeParse(sinTipo).success).toBe(false);
+  });
+
+  it("rechaza un `tipo` que no es 'contacto'", () => {
+    expect(leadContactoSchema.safeParse(lead({ tipo: "assessment" })).success).toBe(
+      false,
+    );
+  });
+
+  /** Campos cerrados: cualquier valor fuera del enum es basura o manipulación. */
+  it.each([
+    ["rol inventado", { rol: "presidente" }],
+    ["rol ausente", { rol: undefined }],
+    ["desafío inventado", { desafio: "otra-cosa" }],
+    ["desafío ausente", { desafio: undefined }],
+    ["desafío con la etiqueta en vez del valor", { desafio: "Costos cloud" }],
+  ])("rechaza %s", (_caso, cambios) => {
+    expect(leadContactoSchema.safeParse(lead(cambios)).success).toBe(false);
   });
 
   it("da los mensajes de error en español", () => {
@@ -110,8 +127,8 @@ describe("normalizarLead", () => {
     tipo: "contacto",
     nombre: "Ana Pérez",
     email: "ana@acme.cl",
-    empresa: "Acme",
-    mensaje: "Tenemos datos en S3.",
+    rol: "gerente-ti",
+    desafio: "costos-cloud",
   };
 
   it("estampa la hora del servidor en ISO 8601", () => {
@@ -119,13 +136,46 @@ describe("normalizarLead", () => {
     expect(normalizarLead(base, cuando).recibidoEn).toBe("2026-07-27T15:30:00.000Z");
   });
 
-  it("convierte la empresa vacía en undefined (no la manda como '')", () => {
-    const resultado = normalizarLead({ ...base, empresa: "" }, new Date());
-    expect(resultado.empresa).toBeUndefined();
+  it("conserva rol y desafío tal como los validó el esquema", () => {
+    const resultado = normalizarLead(base, new Date());
+    expect(resultado.rol).toBe("gerente-ti");
+    expect(resultado.desafio).toBe("costos-cloud");
   });
 
   it("no arrastra el honeypot al lead normalizado", () => {
     const conTrampa = { ...base, [honeypotField]: "spam" } as LeadContacto;
     expect(normalizarLead(conTrampa, new Date())).not.toHaveProperty(honeypotField);
+  });
+});
+
+describe("etiquetas de los enums", () => {
+  /**
+   * El email a la casilla las usa: si un valor del enum se quedara sin label,
+   * Daniela leería `gerente-ti` y nadie lo arreglaría hasta que preguntara.
+   */
+  it("traduce los slugs a texto legible", () => {
+    expect(etiquetaRol("gerente-ti")).toBe("Gerente de TI");
+    expect(etiquetaDesafio("costos-cloud")).toBe(
+      "Costos cloud creciendo sin visibilidad",
+    );
+  });
+});
+
+describe("esCorreoPersonal", () => {
+  /**
+   * Es solo informativo — nunca bloquea. Se usa para la sugerencia en gris del
+   * formulario y para anotar el email en la notificación.
+   */
+  it("reconoce los dominios de correo gratuito", () => {
+    expect(esCorreoPersonal("ana@gmail.com")).toBe(true);
+    expect(esCorreoPersonal("  Ana@HOTMAIL.CL ")).toBe(true);
+  });
+
+  it("no marca un dominio corporativo", () => {
+    expect(esCorreoPersonal("ana@acme.cl")).toBe(false);
+  });
+
+  it("no revienta con un texto sin arroba", () => {
+    expect(esCorreoPersonal("ana")).toBe(false);
   });
 });

@@ -36,10 +36,13 @@ function pedir(cuerpo: unknown, extra: Record<string, string> = {}): Request {
   });
 }
 
+/** `tipo` va explícito: el discriminante dejó de tener `.default()`. */
 const LEAD_VALIDO = {
+  tipo: "contacto",
   nombre: "Ana Pérez",
   email: "ana@acme.cl",
-  mensaje: "Tenemos datos en S3 y nadie confía en los números.",
+  rol: "gerente-ti",
+  desafio: "costos-cloud",
 };
 
 beforeEach(() => {
@@ -67,7 +70,9 @@ describe("POST /api/contacto — cuerpo mal formado", () => {
 
 describe("POST /api/contacto — validación", () => {
   it("responde 400 con los errores por campo", async () => {
-    const respuesta = await POST(pedir({ nombre: "A", email: "no-es-email" }));
+    const respuesta = await POST(
+      pedir({ ...LEAD_VALIDO, nombre: "A", email: "no-es-email" }),
+    );
     expect(respuesta.status).toBe(400);
 
     const cuerpo = (await respuesta.json()) as RespuestaContacto;
@@ -75,12 +80,45 @@ describe("POST /api/contacto — validación", () => {
     if (!cuerpo.ok) {
       expect(cuerpo.campos).toHaveProperty("nombre");
       expect(cuerpo.campos).toHaveProperty("email");
-      expect(cuerpo.campos).toHaveProperty("mensaje");
     }
   });
 
+  /** Los dos campos cerrados: fuera del enum no hay lead que procesar. */
+  it("responde 400 si el rol o el desafío no son del enum", async () => {
+    const respuesta = await POST(
+      pedir({ ...LEAD_VALIDO, rol: "presidente", desafio: "otra-cosa" }),
+    );
+    expect(respuesta.status).toBe(400);
+    expect(enviarEmailLead).not.toHaveBeenCalled();
+
+    const cuerpo = (await respuesta.json()) as RespuestaContacto;
+    if (!cuerpo.ok) {
+      expect(cuerpo.campos).toHaveProperty("rol");
+      expect(cuerpo.campos).toHaveProperty("desafio");
+    }
+  });
+
+  /**
+   * Documenta el contrato nuevo: `tipo` dejó de tener `.default()` para que la
+   * Fase 2 no herede un default sobre el discriminante de la unión. El
+   * formulario tiene que mandarlo. Se rechaza, pero **no** se reporta como
+   * campo marcado: no es algo que la persona pueda corregir, así que cae al
+   * mensaje genérico.
+   */
+  it("responde 400 si el payload no trae `tipo`, sin marcarlo como campo", async () => {
+    const { tipo, ...sinTipo } = LEAD_VALIDO;
+    void tipo;
+
+    const respuesta = await POST(pedir(sinTipo));
+    expect(respuesta.status).toBe(400);
+    expect(enviarEmailLead).not.toHaveBeenCalled();
+
+    const cuerpo = (await respuesta.json()) as RespuestaContacto;
+    if (!cuerpo.ok) expect(cuerpo.campos ?? {}).not.toHaveProperty("tipo");
+  });
+
   it("nunca le reporta el honeypot al cliente (no le da pistas al bot)", async () => {
-    const respuesta = await POST(pedir({ nombre: "A" }));
+    const respuesta = await POST(pedir({ ...LEAD_VALIDO, nombre: "A" }));
     const cuerpo = (await respuesta.json()) as RespuestaContacto;
     if (!cuerpo.ok) expect(cuerpo.campos).not.toHaveProperty("website");
   });
@@ -171,7 +209,7 @@ describe("POST /api/contacto — rate limit", () => {
 
 describe("POST /api/contacto — envío", () => {
   it("responde 200 y llama al envío una sola vez con el lead normalizado", async () => {
-    const respuesta = await POST(pedir({ ...LEAD_VALIDO, empresa: "Acme" }));
+    const respuesta = await POST(pedir(LEAD_VALIDO));
 
     expect(respuesta.status).toBe(200);
     expect(enviarEmailLead).toHaveBeenCalledOnce();
@@ -179,7 +217,8 @@ describe("POST /api/contacto — envío", () => {
       tipo: "contacto",
       nombre: "Ana Pérez",
       email: "ana@acme.cl",
-      empresa: "Acme",
+      rol: "gerente-ti",
+      desafio: "costos-cloud",
     });
     // La hora la pone el servidor, nunca el cliente.
     expect(enviarEmailLead.mock.calls[0][0]).toHaveProperty("recibidoEn");
