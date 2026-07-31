@@ -9,9 +9,21 @@
  * tres reglas de copy de la spec del rediseño.
  */
 
+/**
+ * ⚠️ El titular NO lleva cifras, y es deliberado.
+ *
+ * La versión aprobada en `fix1` decía "+1.000 horas al año". Ese número se
+ * apoyaba en un único lugar de la página —las 1.100 horas del caso real— y ese
+ * bloque se quitó el 2026-07-31. Un titular con una cifra que nada en la página
+ * respalda es peor que uno sin cifra: es la afirmación más visible del sitio y
+ * la primera que un CTO va a pedir que justifiquen.
+ *
+ * Si vuelve una prueba cuantificada a la página, el titular puede volver a
+ * hablar en números. Mientras tanto, la promesa es concreta pero no numérica.
+ */
 export const hero = {
   titulo: "Eliminamos los procesos manuales de datos",
-  tituloDestacado: "que le cuestan a tu empresa +1.000 horas al año.",
+  tituloDestacado: "que tu equipo rehace todas las semanas.",
   bajada:
     "Diagnóstico en 2 semanas. Implementación en tu cuenta AWS. Sin dependencia, sin licencias de terceros, sin sorpresas.",
   /**
