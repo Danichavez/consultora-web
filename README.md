@@ -32,6 +32,8 @@ El sitio **levanta sin configurar nada**: sin `RESEND_API_KEY` el formulario mue
 | `npm run build` | Build de producción — correrlo antes de dar por cerrada una tarea |
 | `npm start` | Sirve el build de producción localmente (requiere `npm run build` antes) |
 | `npm run lint` | ESLint (config de `eslint-config-next`) |
+| `npm test` | Suite de tests con Vitest (74 tests, < 1 segundo) |
+| `npm run test:watch` | Los mismos tests, reejecutándose al guardar |
 
 ## Variables de entorno
 
@@ -255,6 +257,30 @@ Detalles que importan:
 
 ---
 
+## Tests
+
+```bash
+npm test
+```
+
+74 tests con **Vitest**, corren en menos de un segundo y no necesitan navegador ni red.
+
+**Qué se testea y por qué ese recorte.** No se testea el sitio: las 8 secciones solo hacen `.map()` sobre `content/`, y verificar eso sería comprobar que React recorre un array. Lo que sí tiene tests es la lógica donde algo puede romperse **en silencio** — y el criterio para elegirla fue mirar los bugs que este proyecto ya tuvo de verdad:
+
+| Archivo | Qué protege |
+|---------|-------------|
+| `lib/leads.test.ts` | Que el esquema **acepte** el honeypot. Cuando lo rechazaba, un gestor de contraseñas rellenando el campo oculto dejaba el botón "Enviar" sin hacer nada, para siempre y sin mensaje. El build y Lighthouse 100/100 pasaban igual |
+| `lib/env.test.ts` | Que una variable de entorno **definida pero vacía** cuente como ausente. Es el caso típico de Vercel y ya rompió cosas lejos del origen |
+| `lib/rate-limit.test.ts` | La ventana de 5/10 min, la poda del mapa y el agrupado de IPv6 por /64 (sin eso, rotar de dirección evade el límite) |
+| `lib/email.test.ts` | El escapado del HTML del email y que el asunto no admita saltos de línea (inyección de headers SMTP) |
+| `app/api/contacto/route.test.ts` | El endpoint completo con el envío mockeado: JSON roto, array como body, honeypot, origen cruzado, tamaño, rate limit, 200/503/502 |
+
+**La suite está verificada por mutación**, no solo por estar en verde: se rompió a propósito cada uno de los arreglos que dice proteger y se confirmó que la suite falla. Un test que pasa siempre no sirve de nada.
+
+**Lo que los tests NO cubren** y sigue necesitando ojo humano: que el email llegue de verdad, la paridad visual con la maqueta, Lighthouse, el móvil real, y que Calendly agende.
+
+---
+
 ## Pendientes que bloquean el lanzamiento
 
 **Ya resuelto:** dominio (interino), repo y deploy en Vercel, GA4 midiendo, Calendly agendando.
@@ -270,4 +296,4 @@ Pendientes técnicos conocidos:
 - [ ] **Formulario sin probar en producción** — el endpoint responde y valida bien en vivo, pero nunca se envió un lead real desde el sitio publicado. En local con el sandbox sí funcionó.
 - [ ] **Calendly como link, no como embed** — funciona, pero el plan original pedía el widget inline.
 - [ ] **Blog en MDX** — planificado, **no implementado**: no existen `app/blog/` ni `content/blog/`. La base ya está preparada: `lib/seo.ts` tiene la plantilla de títulos y `app/sitemap.ts` tiene la ruta `/blog` comentada, lista para descomentar.
-- [ ] **Suite de tests** — todavía no hay tests ni framework de testing instalado.
+- [ ] **CI** — la suite existe pero nada la corre automáticamente. Falta un workflow de GitHub Actions con `tsc` + `lint` + `test` + `build` en cada push y PR; sin eso los tests se dejan de correr en dos semanas.
